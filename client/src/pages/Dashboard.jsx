@@ -1,0 +1,200 @@
+import React from "react";
+import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+
+
+const Dashboard = () => {
+
+
+    const location = useLocation();
+    const template = location.state?.template;
+
+    const [form, setForm] = useState({
+        title: "",
+        category: "",
+        terms: "",
+        date: "",
+        amount: "",
+        penalty: ""
+    });
+
+    const handleChange = (e) => {
+        setForm({
+        ...form,
+        [e.target.name]: e.target.value
+        });
+    };
+
+    const saveAgreement = () => {
+    const existing = JSON.parse(localStorage.getItem("agreements")) || [];
+
+    const newAgreement = {
+        ...form,
+        id: Date.now()
+    };
+
+    existing.push(newAgreement);
+
+    localStorage.setItem("agreements", JSON.stringify(existing));
+
+    alert("Agreement saved successfully!");
+    };
+
+
+    useEffect(() => {
+    if (template) {
+        setForm({
+        title: template.title || "",
+        category: template.category || "",
+        terms: template.desc || "",
+        date: "",
+        amount: "",
+        penalty: ""
+        });
+    }
+    }, [template]);
+
+
+    return (
+        <div className="dashboard">
+
+        <Sidebar />
+
+        <div className="main">
+            <Topbar />
+
+            <div className="content">
+
+            {/* HEADER */}
+            <div className="page-header">
+                <div>
+                <h2>Create Agreement Template</h2>
+                <p className="subtext">Build structured and secure agreements</p>
+                </div>
+                <button className="btn primary">Save Draft</button>
+            </div>
+
+            <div className="dashboard-grid">
+
+                {/* LEFT SIDE */}
+                <div className="form-container">
+
+                {/* CARD 1 */}
+                <div className="card">
+                    <h3>Basic Info</h3>
+
+                    <input 
+                    name="title"
+                    placeholder="Template Title" 
+                    value={form.title}
+                    onChange={handleChange} 
+                    />
+
+                    <select name="category" value={form.category} onChange={handleChange}>
+                    <option value="">Select Category</option>
+                    <option value="business">Business</option>
+                    <option value="personal">Personal</option>
+                    </select>
+                </div>
+
+                {/* CARD 2 */}
+                <div className="card">
+                    <h3>Agreement Terms</h3>
+
+                    <textarea 
+                    name="terms"
+                    placeholder="Write agreement terms..."
+                    value={form.terms} 
+                    onChange={handleChange}
+                    ></textarea>
+                </div>
+
+                {/* CARD 3 */}
+                <div className="card">
+                    <h3>Deadlines</h3>
+
+                    <input 
+                    type="date" 
+                    name="date"
+                    onChange={handleChange}
+                    />
+
+                    <button className="btn secondary small">
+                    + Add Milestone
+                    </button>
+                </div>
+
+                {/* CARD 4 */}
+                <div className="card">
+                    <h3>Payment Terms</h3>
+
+                    <input 
+                    name="amount"
+                    placeholder="Amount" 
+                    value={form.amount}
+                    onChange={handleChange}
+                    />
+
+                    <select>
+                    <option>Currency</option>
+                    <option>BDT</option>
+                    <option>USD</option>
+                    </select>
+                </div>
+
+                {/* CARD 5 */}
+                <div className="card">
+                    <h3>Penalty Conditions</h3>
+
+                    <input 
+                    name="penalty"
+                    placeholder="Penalty %" 
+                    value={form.penalty}
+                    onChange={handleChange}
+                    />
+                </div>
+
+                </div>
+
+                {/* RIGHT SIDE */}
+                <div className="summary-card">
+
+                <h3>Summary</h3>
+
+                <div className="summary-item">
+                    <strong>Title:</strong>
+                    <p>{form.title || "Not set"}</p>
+                </div>
+
+                <div className="summary-item">
+                    <strong>Category:</strong>
+                    <p>{form.category || "Not selected"}</p>
+                </div>
+
+                <div className="summary-item">
+                    <strong>Amount:</strong>
+                    <p>{form.amount || "0"}</p>
+                </div>
+
+                <div className="summary-item">
+                    <strong>Penalty:</strong>
+                    <p>{form.penalty || "0%"}</p>
+                </div>
+
+                <button className="btn primary full">Preview</button>
+                <button className="btn secondary full" onClick={saveAgreement}>Save Draft</button>
+
+                </div>
+
+            </div>
+
+            </div>
+        </div>
+
+        </div>
+    );
+};
+
+export default Dashboard;
