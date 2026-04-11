@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import API from "../api";
 
 const ActiveAgreements = () => {
     const [agreements, setAgreements] = useState([]);
 
     useEffect(() => {
-        const stored = JSON.parse(localStorage.getItem("agreements")) || [];
-        setAgreements(stored);
+        const fetchData = async () => {
+        try {
+            const res = await API.get("/agreements");
+            setAgreements(res.data);
+        } catch (err) {
+            console.log(err);
+        }
+        };
+
+        fetchData();
     }, []);
 
     return (
@@ -32,17 +41,17 @@ const ActiveAgreements = () => {
                 {agreements.length === 0 ? (
                 <p>No active agreements yet.</p>
                 ) : (
-                agreements.map((item, index) => (
-                    <div className="agreement-card" key={index}>
+                agreements.map((a) => (
+                    <div className="agreement-card" key={a._id}>
 
-                    <h3>{item.title}</h3>
+                    <h3>{a.title}</h3>
 
-                    <p><b>Category:</b> {item.category}</p>
-                    <p><b>Amount:</b> {item.amount}</p>
-                    <p><b>Penalty:</b> {item.penalty}%</p>
+                    <p><b>Category:</b> {a.category}</p>
+                    <p><b>Amount:</b> {a.amount}</p>
+                    <p><b>Penalty:</b> {a.penalty}%</p>
 
                     <p className="agreement-desc">
-                        {item.terms}
+                        {a.terms}
                     </p>
 
                     </div>
