@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+.aa-wrapper {
+  --bg: #f0f2f7;
+  --surface: #ffffff;
+  --border: #e2e6ef;
+  --text-primary: #0f1623;
+  --text-secondary: #6b7591;
+  --accent-blue: #2563eb;
+  --accent-blue-light: #eff4ff;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --shadow: 0 4px 24px rgba(15, 22, 35, 0.07);
+  --radius: 14px;
+
+  font-family: 'DM Mono', monospace;
+  background: var(--bg);
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.aa-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  width: 100%;
+  max-width: 780px;
+  overflow: hidden;
+  animation: aa-rise 0.5s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes aa-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aa-card-header {
+  padding: 32px 36px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.aa-card-header h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  letter-spacing: -0.5px;
+}
+
+.aa-card-header p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  letter-spacing: 0.02em;
+}
+
+.aa-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.aa-table thead th {
+  font-family: 'Syne', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding: 14px 20px;
+  text-align: left;
+  background: #f8f9fc;
+  border-bottom: 1px solid var(--border);
+}
+
+.aa-table thead th:first-child {
+  padding-left: 36px;
+}
+
+.aa-table thead th:last-child {
+  padding-right: 36px;
+  text-align: right;
+}
+
+.aa-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.18s ease;
+  animation: aa-row-in 0.4s cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.aa-table tbody tr:hover {
+  background: #f5f7fc;
+}
+
+.aa-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+@keyframes aa-row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.aa-table td {
+  padding: 18px 20px;
+  vertical-align: middle;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.aa-table td:first-child {
+  padding-left: 36px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1a2235;
+  max-width: 180px;
+  line-height: 1.4;
+}
+
+.aa-table td:last-child {
+  padding-right: 36px;
+  text-align: right;
+}
+
+.aa-email {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
+.aa-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 13px;
+  border-radius: 999px;
+  font-family: 'Syne', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aa-badge:hover {
+  transform: scale(1.06);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.aa-badge.accepted {
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+.aa-badge.rejected {
+  background: var(--red-bg);
+  color: var(--red);
+}
+
+.aa-badge-icon {
+  font-size: 0.75rem;
+}
+
+.aa-card-footer {
+  padding: 14px 36px;
+  background: #f8f9fc;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.aa-card-footer span {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+}
+
+.aa-count-pill {
+  background: var(--accent-blue-light);
+  color: var(--accent-blue) !important;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem !important;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.aa-empty {
+  padding: 26px 36px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.aa-error {
+  color: var(--red);
+}
+
+.aa-table td.aa-empty {
+  padding: 26px 36px;
+  text-align: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 900px) {
+  .aa-wrapper {
+    align-items: flex-start;
+  }
+
+  .aa-card {
+    overflow-x: auto;
+  }
+
+  .aa-card-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

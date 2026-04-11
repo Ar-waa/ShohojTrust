@@ -1,18 +1,20 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
-
 const Dashboard = () => {
-
 
     const location = useLocation();
     const template = location.state?.template;
+    const navigate = useNavigate();
 
     const [form, setForm] = useState({
         title: "",
+        clientEmail: "",
+        providerEmail: "",
         category: "",
         terms: "",
         date: "",
@@ -22,40 +24,73 @@ const Dashboard = () => {
 
     const handleChange = (e) => {
         setForm({
-        ...form,
-        [e.target.name]: e.target.value
+            ...form,
+            [e.target.name]: e.target.value
         });
     };
 
     const saveAgreement = () => {
-    const existing = JSON.parse(localStorage.getItem("agreements")) || [];
+        const existing = JSON.parse(localStorage.getItem("agreements")) || [];
 
-    const newAgreement = {
-        ...form,
-        id: Date.now()
+        const newAgreement = {
+            ...form,
+            id: Date.now()
+        };
+
+        existing.push(newAgreement);
+
+        localStorage.setItem("agreements", JSON.stringify(existing));
+
+        alert("Agreement saved successfully!");
     };
-
-    existing.push(newAgreement);
-
-    localStorage.setItem("agreements", JSON.stringify(existing));
-
-    alert("Agreement saved successfully!");
-    };
-
 
     useEffect(() => {
-    if (template) {
-        setForm({
-        title: template.title || "",
-        category: template.category || "",
-        terms: template.desc || "",
-        date: "",
-        amount: "",
-        penalty: ""
-        });
-    }
+        if (template) {
+            setForm({
+                title: template.title || "",
+                clientEmail: "",
+                providerEmail: "",
+                category: template.category || "",
+                terms: template.desc || "",
+                date: "",
+                amount: "",
+                penalty: ""
+            });
+        }
     }, [template]);
 
+    // ⭐ NEW BACKEND FUNCTION (ONLY ADDITION)
+    const handlePreview = async () => {
+        try {
+            if (!form.clientEmail || !form.providerEmail) {
+                alert("Please provide both client and provider email.");
+                return;
+            }
+
+            const res = await fetch("http://localhost:5000/api/agreements/preview", {
+                //const res = await fetch(`${import.meta.env.VITE_API_URL}/api/agreements/preview`, {//
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(form)
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || "Failed to preview agreement");
+            }
+
+            // store backend response (IMPORTANT)
+            localStorage.setItem("previewAgreement", JSON.stringify(data));
+
+            navigate("/agreement-confirmation");
+
+        } catch (error) {
+            console.log("Preview error:", error);
+            alert(error.message || "Preview failed");
+        }
+    };
 
     return (
         <div className="dashboard">
@@ -90,6 +125,22 @@ const Dashboard = () => {
                     placeholder="Template Title" 
                     value={form.title}
                     onChange={handleChange} 
+                    />
+
+                    <input
+                    type="email"
+                    name="clientEmail"
+                    placeholder="Client Email"
+                    value={form.clientEmail}
+                    onChange={handleChange}
+                    />
+
+                    <input
+                    type="email"
+                    name="providerEmail"
+                    placeholder="Provider Email"
+                    value={form.providerEmail}
+                    onChange={handleChange}
                     />
 
                     <select name="category" value={form.category} onChange={handleChange}>
@@ -174,6 +225,16 @@ const Dashboard = () => {
                 </div>
 
                 <div className="summary-item">
+                    <strong>Client:</strong>
+                    <p>{form.clientEmail || "Not set"}</p>
+                </div>
+
+                <div className="summary-item">
+                    <strong>Provider:</strong>
+                    <p>{form.providerEmail || "Not set"}</p>
+                </div>
+
+                <div className="summary-item">
                     <strong>Amount:</strong>
                     <p>{form.amount || "0"}</p>
                 </div>
@@ -183,8 +244,17 @@ const Dashboard = () => {
                     <p>{form.penalty || "0%"}</p>
                 </div>
 
-                <button className="btn primary full">Preview</button>
-                <button className="btn secondary full" onClick={saveAgreement}>Save Draft</button>
+                {/* 🔥 ONLY CHANGED BUTTON */}
+                <button
+                    className="btn primary full"
+                    onClick={handlePreview}
+                >
+                    Preview
+                </button>
+                
+                <button className="btn secondary full" onClick={saveAgreement}>
+                    Save Draft
+                </button>
 
                 </div>
 

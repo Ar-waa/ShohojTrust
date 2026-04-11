@@ -1,0 +1,132 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
+import "./AgreementActivityTimeline.css";
+import { Bell, Check, Clock3, FileText, Send } from "lucide-react";
+
+const AgreementActivityTimeline = () => {
+  const { agreementId } = useParams();
+  const [timeline, setTimeline] = useState([]);
+  const [agreementMeta, setAgreementMeta] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const userEmail = useMemo(() => {
+    const user = JSON.parse(localStorage.getItem("user") || "null");
+    return user?.email || "";
+  }, []);
+
+  const getEventIcon = (icon) => {
+    if (icon === "send") return <Send size={18} />;
+    if (icon === "check") return <Check size={18} />;
+    if (icon === "clock") return <Clock3 size={18} />;
+    if (icon === "alert") return <Bell size={18} />;
+    return <FileText size={18} />;
+  };
+
+  useEffect(() => {
+    if (!agreementId) {
+      setLoading(false);
+      setTimeline([]);
+      return;
+    }
+
+    const load = async () => {
+      try {
+        setError("");
+        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const query = userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : "";
+        const res = await fetch(`${apiBase}/api/agreements/${agreementId}/events${query}`);
+        if (!res.ok) {
+          throw new Error("Failed to load timeline data");
+        }
+
+        const data = await res.json();
+
+        setAgreementMeta({
+          agreementId: data.agreementId,
+          title: data.title,
+          clientEmail: data.clientEmail,
+          providerEmail: data.providerEmail,
+        });
+
+        setTimeline(Array.isArray(data.timeline) ? data.timeline : []);
+      } catch (error) {
+        setError(error.message || "Something went wrong");
+        setTimeline([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [agreementId, userEmail]);
+
+  return (
+    <div className="dashboard">
+      <Sidebar />
+
+      <div className="main">
+        <Topbar />
+
+        <div className="content">
+          <div className="atl-page">
+            <div className="timeline-page-title">User Agreement Activity Timeline</div>
+
+            <div className="timeline-card">
+              <div className="timeline-card-header">
+                <h2>Agreement Activity Timeline</h2>
+                <p className="agreement-id">
+                  Agreement ID: {agreementMeta?.agreementId || agreementId || "N/A"}
+                </p>
+              </div>
+              <hr className="timeline-divider" />
+
+              {!agreementId ? (
+                <div className="timeline-empty">Open this page by clicking an agreement from Active Agreements.</div>
+              ) : loading ? (
+                <div className="timeline-empty">Loading timeline...</div>
+              ) : error ? (
+                <div className="timeline-empty timeline-error">{error}</div>
+              ) : timeline.length === 0 ? (
+                <div className="timeline-empty">No timeline events found for this agreement.</div>
+              ) : (
+                <div className="timeline-list">
+                  {timeline.map((event, index) => (
+                    <div className="timeline-item" key={event.key || index}>
+                      <div className="icon-col">
+                        <div className={`timeline-icon ${event.iconColor || "blue"}`}>
+                          {getEventIcon(event.icon)}
+                        </div>
+                      </div>
+
+                      <div className="timeline-content">
+                        <div className="timeline-content-top">
+                          <span className="event-title">{event.title}</span>
+                          {event.badge ? (
+                            <span className={`timeline-badge ${event.badgeType || "paid"}`}>
+                              {event.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="event-desc">{event.description}</p>
+                        <p className="event-time">{new Date(event.time).toLocaleString()}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="timeline-api-footer">
+                API ready: <span>/api/agreements/{agreementMeta?.agreementId || agreementId || "id"}/events</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default AgreementActivityTimeline;
