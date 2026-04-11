@@ -1,18 +1,42 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api";
 
 const Auth = () => {
     const [isSignup, setIsSignup] = useState(false);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const [form, setForm] = useState({
+    email: "",
+    password: "",
+});
 
-        // fake login
-        localStorage.setItem("user", "loggedIn");
-        // TEMP: no backend yet
+    const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+        if (isSignup) {
+        // REGISTER
+        await API.post("/auth/register", form);
+        alert("Account created! Now login.");
+        setIsSignup(false);
+        } else {
+        // LOGIN
+        const res = await API.post("/auth/login", {
+            email: form.email,
+            password: form.password
+        });
+
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
         navigate("/dashboard");
-    };
+        }
+    } catch (err) {
+        alert(err.response?.data?.msg || "Auth failed");
+    }
+};
+
 
     return (
         <div className="auth-page">
@@ -37,8 +61,10 @@ const Auth = () => {
             </div>
 
             <form className="auth-form" onSubmit={handleSubmit}>
-            <input type="email" placeholder="Email" required />
-            <input type="password" placeholder="Password" required />
+            <input type="email" placeholder="Email" required onChange={(e) =>
+            setForm({ ...form, email: e.target.value })}/>
+            <input type="password" placeholder="Password" required onChange={(e) =>
+            setForm({ ...form, password: e.target.value })} />
 
             {isSignup && (
                 <input type="password" placeholder="Confirm Password" required />

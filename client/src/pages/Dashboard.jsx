@@ -1,9 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import API from "../api";
 
 const Dashboard = () => {
 
@@ -12,6 +13,8 @@ const Dashboard = () => {
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
+        providerEmail: "",
+        clientEmail: "",
         title: "",
         category: "",
         terms: "",
@@ -27,31 +30,55 @@ const Dashboard = () => {
         });
     };
 
-    const saveAgreement = () => {
-        const existing = JSON.parse(localStorage.getItem("agreements")) || [];
-
-        const newAgreement = {
-            ...form,
-            id: Date.now()
-        };
-
-        existing.push(newAgreement);
-
-        localStorage.setItem("agreements", JSON.stringify(existing));
-
-        alert("Agreement saved successfully!");
+    const saveDraft = () => {
+        localStorage.setItem("draftAgreement", JSON.stringify(form));
+        window.location.reload();
     };
 
+    // const saveAgreement = async () => {
+    //     try {
+    //         await API.post("/agreements", form);
+    //         alert("Agreement saved!");
+
+    //         // optional: clear draft after real save
+    //         localStorage.removeItem("draftAgreement");
+
+    //     } catch (err) {
+    //         console.log(err.response?.data || err.message);
+    //         alert("Failed to save agreement");
+    //     }
+    // };
+
+
     useEffect(() => {
-        if (template) {
-            setForm({
+        const savedDraft = localStorage.getItem("draftAgreement");
+
+        if (savedDraft) {
+            setForm(JSON.parse(savedDraft));
+        }
+    }, []);
+
+    useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user"));
+
+        if (user?.email) {
+            setForm((prev) => ({
+                ...prev,
+                providerEmail: user.email
+            }));
+        }
+    }, []);
+
+    useEffect(() => {
+        const savedDraft = localStorage.getItem("draftAgreement");
+
+        if (template && !savedDraft) {
+            setForm((prev) => ({
+                ...prev,
                 title: template.title || "",
                 category: template.category || "",
-                terms: template.desc || "",
-                date: "",
-                amount: "",
-                penalty: ""
-            });
+                terms: template.desc || ""
+            }));
         }
     }, [template]);
 
@@ -82,128 +109,134 @@ const Dashboard = () => {
     return (
         <div className="dashboard">
 
-        <Sidebar />
+            <Sidebar />
 
-        <div className="main">
-            <Topbar />
+            <div className="main">
+                <Topbar />
 
-            <div className="content">
+                <div className="content">
 
-            {/* HEADER */}
-            <div className="page-header">
-                <div>
-                <h2>Create Agreement Template</h2>
-                <p className="subtext">Build structured and secure agreements</p>
-                </div>
-                <button className="btn primary">Save Draft</button>
-            </div>
+                    <div className="page-header">
+                        <div>
+                            <h2>Create Agreement Template</h2>
+                            <p className="subtext">Build structured and secure agreements</p>
+                        </div>
+                    </div>
 
-            <div className="dashboard-grid">
+                    <div className="dashboard-grid">
 
-                {/* LEFT SIDE */}
-                <div className="form-container">
+                        {/* LEFT SIDE */}
+                        <div className="form-container">
 
-                {/* CARD 1 */}
-                <div className="card">
-                    <h3>Basic Info</h3>
+                            <div className="card">
+                                <h3>Basic Info</h3>
 
-                    <input 
-                    name="title"
-                    placeholder="Template Title" 
-                    value={form.title}
-                    onChange={handleChange} 
-                    />
+                                <input
+                                    name="title"
+                                    placeholder="Template Title"
+                                    value={form.title}
+                                    onChange={handleChange}
+                                />
 
-                    <select name="category" value={form.category} onChange={handleChange}>
-                    <option value="">Select Category</option>
-                    <option value="business">Business</option>
-                    <option value="personal">Personal</option>
-                    </select>
-                </div>
+                                <input
+                                    value={form.providerEmail}
+                                    disabled
+                                />
 
-                {/* CARD 2 */}
-                <div className="card">
-                    <h3>Agreement Terms</h3>
+                                <input
+                                    name="clientEmail"
+                                    placeholder="Client Email"
+                                    value={form.clientEmail}
+                                    onChange={handleChange}
+                                />
 
-                    <textarea 
-                    name="terms"
-                    placeholder="Write agreement terms..."
-                    value={form.terms} 
-                    onChange={handleChange}
-                    ></textarea>
-                </div>
+                                <select name="category" value={form.category} onChange={handleChange}>
+                                    <option value="">Select Category</option>
+                                    <option value="business">Business</option>
+                                    <option value="personal">Personal</option>
+                                </select>
+                            </div>
 
-                {/* CARD 3 */}
-                <div className="card">
-                    <h3>Deadlines</h3>
+                            <div className="card">
+                                <h3>Agreement Terms</h3>
 
-                    <input 
-                    type="date" 
-                    name="date"
-                    onChange={handleChange}
-                    />
+                                <textarea
+                                    name="terms"
+                                    placeholder="Write agreement terms..."
+                                    value={form.terms}
+                                    onChange={handleChange}
+                                ></textarea>
+                            </div>
 
-                    <button className="btn secondary small">
-                    + Add Milestone
-                    </button>
-                </div>
+                            <div className="card">
+                                <h3>Deadlines</h3>
 
-                {/* CARD 4 */}
-                <div className="card">
-                    <h3>Payment Terms</h3>
+                                <input
+                                    type="date"
+                                    name="date"
+                                    value={form.date}
+                                    onChange={handleChange}
+                                />
 
-                    <input 
-                    name="amount"
-                    placeholder="Amount" 
-                    value={form.amount}
-                    onChange={handleChange}
-                    />
+                                <button className="btn secondary small">
+                                    + Add Milestone
+                                </button>
+                            </div>
 
-                    <select>
-                    <option>Currency</option>
-                    <option>BDT</option>
-                    <option>USD</option>
-                    </select>
-                </div>
+                            <div className="card">
+                                <h3>Payment Terms</h3>
 
-                {/* CARD 5 */}
-                <div className="card">
-                    <h3>Penalty Conditions</h3>
+                                <input
+                                    name="amount"
+                                    placeholder="Amount"
+                                    value={form.amount}
+                                    onChange={handleChange}
+                                />
 
-                    <input 
-                    name="penalty"
-                    placeholder="Penalty %" 
-                    value={form.penalty}
-                    onChange={handleChange}
-                    />
-                </div>
+                                <select>
+                                    <option>Currency</option>
+                                    <option>BDT</option>
+                                    <option>USD</option>
+                                </select>
+                            </div>
 
-                </div>
+                            <div className="card">
+                                <h3>Penalty Conditions</h3>
 
-                {/* RIGHT SIDE */}
-                <div className="summary-card">
+                                <input
+                                    name="penalty"
+                                    placeholder="Penalty %"
+                                    value={form.penalty}
+                                    onChange={handleChange}
+                                />
+                            </div>
 
-                <h3>Summary</h3>
+                        </div>
 
-                <div className="summary-item">
-                    <strong>Title:</strong>
-                    <p>{form.title || "Not set"}</p>
-                </div>
+                        {/* RIGHT SIDE */}
+                        <div className="summary-card">
 
-                <div className="summary-item">
-                    <strong>Category:</strong>
-                    <p>{form.category || "Not selected"}</p>
-                </div>
+                            <h3>Summary</h3>
 
-                <div className="summary-item">
-                    <strong>Amount:</strong>
-                    <p>{form.amount || "0"}</p>
-                </div>
+                            <div className="summary-item">
+                                <strong>Title:</strong>
+                                <p>{form.title || "Not set"}</p>
+                            </div>
 
-                <div className="summary-item">
-                    <strong>Penalty:</strong>
-                    <p>{form.penalty || "0%"}</p>
-                </div>
+                            <div className="summary-item">
+                                <strong>Category:</strong>
+                                <p>{form.category || "Not selected"}</p>
+                            </div>
+
+                            <div className="summary-item">
+                                <strong>Amount:</strong>
+                                <p>{form.amount || "0"}</p>
+                            </div>
+
+                            <div className="summary-item">
+                                <strong>Penalty:</strong>
+                                <p>{form.penalty || "0%"}</p>
+                            </div>
 
                 {/* 🔥 ONLY CHANGED BUTTON */}
                 <button
@@ -217,15 +250,27 @@ const Dashboard = () => {
                     Save Draft
                 </button>
 
+                        </div>
+
+                    </div>
+
                 </div>
-
             </div>
-
-            </div>
-        </div>
 
         </div>
     );
 };
 
 export default Dashboard;
+
+
+        // const saveAgreement = async () => {
+        // try {
+        //     await API.post("/agreements", form);
+
+        //     alert("Agreement saved!");
+        // } catch (err) {
+        //     console.log(err.response?.data || err.message);
+        //     alert("Failed to save agreement");
+        // }
+        // };
