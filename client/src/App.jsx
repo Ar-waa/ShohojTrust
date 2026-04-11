@@ -6,7 +6,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
-
+import AgreementConfirmation from "./pages/AgreementConfirmation";
 
 import "./styles/global.css";
 
@@ -25,6 +25,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute> <Dashboard /> </PrivateRoute>} />
         <Route path="/templates" element={<PrivateRoute><Templates /></PrivateRoute>} />
         <Route path="/agreements" element={<PrivateRoute><ActiveAgreements /></PrivateRoute>}/>
+        <Route path="/agreement-confirmation" element={<PrivateRoute><AgreementConfirmation /></PrivateRoute>} />
 
       </Routes>
     </Router>

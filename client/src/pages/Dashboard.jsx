@@ -1,15 +1,15 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
-
 const Dashboard = () => {
-
 
     const location = useLocation();
     const template = location.state?.template;
+    const navigate = useNavigate();
 
     const [form, setForm] = useState({
         title: "",
@@ -22,40 +22,62 @@ const Dashboard = () => {
 
     const handleChange = (e) => {
         setForm({
-        ...form,
-        [e.target.name]: e.target.value
+            ...form,
+            [e.target.name]: e.target.value
         });
     };
 
     const saveAgreement = () => {
-    const existing = JSON.parse(localStorage.getItem("agreements")) || [];
+        const existing = JSON.parse(localStorage.getItem("agreements")) || [];
 
-    const newAgreement = {
-        ...form,
-        id: Date.now()
+        const newAgreement = {
+            ...form,
+            id: Date.now()
+        };
+
+        existing.push(newAgreement);
+
+        localStorage.setItem("agreements", JSON.stringify(existing));
+
+        alert("Agreement saved successfully!");
     };
-
-    existing.push(newAgreement);
-
-    localStorage.setItem("agreements", JSON.stringify(existing));
-
-    alert("Agreement saved successfully!");
-    };
-
 
     useEffect(() => {
-    if (template) {
-        setForm({
-        title: template.title || "",
-        category: template.category || "",
-        terms: template.desc || "",
-        date: "",
-        amount: "",
-        penalty: ""
-        });
-    }
+        if (template) {
+            setForm({
+                title: template.title || "",
+                category: template.category || "",
+                terms: template.desc || "",
+                date: "",
+                amount: "",
+                penalty: ""
+            });
+        }
     }, [template]);
 
+    // ⭐ NEW BACKEND FUNCTION (ONLY ADDITION)
+    const handlePreview = async () => {
+        try {
+            const res = await fetch("http://localhost:5000/api/agreements/preview", {
+                //const res = await fetch(`${import.meta.env.VITE_API_URL}/api/agreements/preview`, {//
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(form)
+            });
+
+            const data = await res.json();
+
+            // store backend response (IMPORTANT)
+            localStorage.setItem("previewAgreement", JSON.stringify(data));
+
+            navigate("/agreement-confirmation");
+
+        } catch (error) {
+            console.log("Preview error:", error);
+        }
+    };
 
     return (
         <div className="dashboard">
@@ -183,8 +205,17 @@ const Dashboard = () => {
                     <p>{form.penalty || "0%"}</p>
                 </div>
 
-                <button className="btn primary full">Preview</button>
-                <button className="btn secondary full" onClick={saveAgreement}>Save Draft</button>
+                {/* 🔥 ONLY CHANGED BUTTON */}
+                <button
+                    className="btn primary full"
+                    onClick={handlePreview}
+                >
+                    Preview
+                </button>
+                
+                <button className="btn secondary full" onClick={saveAgreement}>
+                    Save Draft
+                </button>
 
                 </div>
 
