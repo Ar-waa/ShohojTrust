@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api";
 
 const Auth = () => {
     const [isSignup, setIsSignup] = useState(false);
@@ -7,8 +8,13 @@ const Auth = () => {
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const [form, setForm] = useState({
+    email: "",
+    password: "",
+});
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
 
         // fake login
         localStorage.setItem("user", JSON.stringify({
@@ -17,7 +23,12 @@ const Auth = () => {
         }));
         // TEMP: no backend yet
         navigate("/dashboard");
-    };
+        }
+    } catch (err) {
+        alert(err.response?.data?.msg || "Auth failed");
+    }
+};
+
 
     return (
         <div className="auth-page">
