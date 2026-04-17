@@ -3,17 +3,31 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
+import ProviderDashboard from "./pages/ProviderDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
 import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
+import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
 
 import "./styles/global.css";
 
-const PrivateRoute = ({ children }) => {
-  const isAuth = localStorage.getItem("user");
+// ==========================
+// PROTECTED ROUTE
+// ==========================
+const PrivateRoute = ({ children, allowedRoles }) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
 
-  return isAuth ? children : <Navigate to="/auth" />;
+  if (!token || !user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
 };
 
 function App() {
@@ -22,11 +36,74 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/dashboard" element={<PrivateRoute> <Dashboard /> </PrivateRoute>} />
-        <Route path="/templates" element={<PrivateRoute><Templates /></PrivateRoute>} />
-        <Route path="/agreements" element={<PrivateRoute><ActiveAgreements /></PrivateRoute>}/>
-        <Route path="/agreement-confirmation" element={<PrivateRoute><AgreementConfirmation /></PrivateRoute>} />
 
+        {/* DASHBOARDS (PROTECTED) */}
+        <Route
+          path="/provider-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["provider"]}>
+              <ProviderDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/client-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["client"]}>
+              <ClientDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        {/* OTHER ROUTES */}
+        <Route
+          path="/templates"
+          element={
+            <PrivateRoute allowedRoles={["provider", "admin"]}>
+              <Templates />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreements"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <ActiveAgreements />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-activity-timeline"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-activity-timeline/:agreementId"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-confirmation"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementConfirmation />
+            </PrivateRoute>
+          }
+        />
+
+        {/* OPTIONAL */}
+        <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />
       </Routes>
     </Router>
   );

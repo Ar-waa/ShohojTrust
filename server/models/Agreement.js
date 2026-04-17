@@ -1,35 +1,41 @@
 const mongoose = require("mongoose");
 
-const agreementSchema = new mongoose.Schema({
+const agreementSchema = new mongoose.Schema(
+  {
     providerEmail: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
     },
 
     clientEmail: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
+      lowercase: true,
+      trim: true,
     },
 
-    title: String,
-    category: String,
+    title: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+
     terms: String,
+    category: String,
     date: String,
     amount: String,
     penalty: String,
 
-    // // ✅ ADDED STATUS FIELD (IMPORTANT)
-    // status: {
-    //     type: String,
-    //     default: "pending",
-    //     enum: ["pending", "accepted", "rejected"]
-    // },
-
-    userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-    }
-
-}, { timestamps: true });
+    // ✅ IMPORTANT STATUS FIELD
+    status: {
+      type: String,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
+    },
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Agreement", agreementSchema);

@@ -3,90 +3,144 @@ import { useNavigate } from "react-router-dom";
 import API from "../api";
 
 const Auth = () => {
-    const [isSignup, setIsSignup] = useState(false);
-    const navigate = useNavigate();
+  const [isSignup, setIsSignup] = useState(false);
+  const [role, setRole] = useState("client");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
-    const [form, setForm] = useState({
-    email: "",
-    password: "",
-});
-
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-        if (isSignup) {
-        // REGISTER
-        await API.post("/auth/register", form);
-        alert("Account created! Now login.");
-        setIsSignup(false);
-        } else {
-        // LOGIN
-        const res = await API.post("/auth/login", {
-            email: form.email,
-            password: form.password
-        });
+      const { data } = await API.post("/auth", {
+        email,
+        password,
+        role: isSignup ? role : undefined,
+        isSignup
+      });
 
-        localStorage.setItem("token", res.data.token);
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-        navigate("/dashboard");
-        }
+      alert(data.msg);
+
+      const userRole = data.user.role;
+
+      // ✅ FIXED ROUTES HERE
+      if (userRole === "admin") {
+        navigate("/admin");
+      } else if (userRole === "provider") {
+        navigate("/provider-dashboard");
+      } else {
+        navigate("/client-dashboard");
+      }
+
     } catch (err) {
-        alert(err.response?.data?.msg || "Auth failed");
+      console.log("AUTH ERROR:", err.response?.data);
+      alert(err.response?.data?.msg || "Authentication failed.");
     }
-};
+  };
 
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h2 className="logo-text">ShohojTrust</h2>
+          <p className="auth-subtitle">
+            {isSignup ? "Create your professional account" : "Welcome back! Please login"}
+          </p>
+        </div>
 
-    return (
-        <div className="auth-page">
-        <div className="auth-card">
+        <div className="auth-toggle-pill">
+          <button
+            type="button"
+            className={!isSignup ? "active" : ""}
+            onClick={() => setIsSignup(false)}
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            className={isSignup ? "active" : ""}
+            onClick={() => setIsSignup(true)}
+          >
+            Sign Up
+          </button>
+        </div>
 
-            <h2 className="logo center">ShohojTrust</h2>
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {isSignup && (
+            <div className="role-selection">
+              <p className="role-label">Register as:</p>
+              <div className="radio-group">
+                <label className={`radio-item ${role === 'client' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="client" 
+                    checked={role === 'client'} 
+                    onChange={(e) => setRole(e.target.value)} 
+                  />
+                  <span>Client</span>
+                </label>
 
-            <div className="auth-toggle">
-            <button
-                className={!isSignup ? "active" : ""}
-                onClick={() => setIsSignup(false)}
-            >
-                Login
-            </button>
-
-            <button
-                className={isSignup ? "active" : ""}
-                onClick={() => setIsSignup(true)}
-            >
-                Sign Up
-            </button>
+                <label className={`radio-item ${role === 'provider' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="provider" 
+                    checked={role === 'provider'} 
+                    onChange={(e) => setRole(e.target.value)} 
+                  />
+                  <span>Provider</span>
+                </label>
+              </div>
             </div>
+          )}
 
-            <form className="auth-form" onSubmit={handleSubmit}>
-            <input type="email" placeholder="Email" required onChange={(e) =>
-            setForm({ ...form, email: e.target.value })}/>
-            <input type="password" placeholder="Password" required onChange={(e) =>
-            setForm({ ...form, password: e.target.value })} />
+          <div className="input-group">
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-            {isSignup && (
-                <input type="password" placeholder="Confirm Password" required />
-            )}
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-            {!isSignup && <p className="forgot">Forgot Password?</p>}
+          {isSignup && (
+            <div className="input-group">
+              <input type="password" placeholder="Confirm Password" required />
+            </div>
+          )}
 
-            <button className="btn primary full">
-                {isSignup ? "Create Account" : "Login"}
-            </button>
-            </form>
+          {!isSignup && <p className="forgot-link">Forgot Password?</p>}
 
-            <p className="switch-text">
-            {isSignup ? "Already have an account?" : "Don’t have an account?"}
-            <span onClick={() => setIsSignup(!isSignup)}>
-                {isSignup ? " Login" : " Sign Up"}
-            </span>
-            </p>
+          <button type="submit" className="btn-modern">
+            {isSignup ? "Get Started" : "Sign In"}
+          </button>
+        </form>
 
-        </div>
-        </div>
-    );
+        <p className="switch-prompt">
+          {isSignup ? "Already have an account?" : "New to ShohojTrust?"}
+          <span onClick={() => setIsSignup(!isSignup)}>
+            {isSignup ? " Log in" : " Create account"}
+          </span>
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default Auth;

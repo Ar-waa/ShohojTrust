@@ -5,7 +5,8 @@ import {
     FileText,
     ShieldCheck,
     BarChart3,
-    Settings
+    Settings,
+    History
     } from "lucide-react";
 
     const Sidebar = () => {
@@ -28,6 +29,11 @@ import {
         path: "/agreements",
         icon: <FileText size={18} />
 },
+        {
+        name: "Agreement Activity Timeline",
+        path: "/agreement-activity-timeline",
+        icon: <History size={18} />
+    },
 
         {
         name: "Trust Score",
@@ -54,7 +60,8 @@ import {
         <div className="menu">
 
             {menuItems.map((item, index) => {
-            const isActive = location.pathname === item.path;
+            const isTimelinePath = item.path === "/agreement-activity-timeline" && location.pathname.startsWith("/agreement-activity-timeline");
+            const isActive = location.pathname === item.path || isTimelinePath;
 
             return (
                 <div

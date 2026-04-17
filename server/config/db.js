@@ -1,18 +1,3 @@
-// const mongoose = require("mongoose");
-
-// const connectDB = async () => {
-//     try {
-//         console.log("Connecting to MongoDB...");
-//         await mongoose.connect(process.env.MONGO_URI);
-//         console.log("MongoDB Connected");
-//     } catch (err) {
-//         console.error(err);
-//         process.exit(1);
-//     }
-// };
-
-// module.exports = connectDB;
-
 const mongoose = require("mongoose");
 
 const connectWithUri = async (uri, label) => {
@@ -31,7 +16,8 @@ const isSrvLookupError = (err) => {
 
 const connectDB = async () => {
     const primaryUri = process.env.MONGO_URI;
-    const fallbackUri = process.env.MONGO_URI_FALLBACK || "mongodb://127.0.0.1:27017/shohojtrust";
+    const fallbackUri = process.env.MONGO_URI_FALLBACK || "mongodb://127.0.0.1:27017/ShohojTrust";
+    //console.log("Connected DB:", mongoose.connection.name);
 
     try {
         await connectWithUri(primaryUri, "primary URI");

@@ -1,19 +1,47 @@
 const express = require("express");
 const router = express.Router();
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const {
     createAgreement,
     updateStatus,
-    previewAgreement
+    previewAgreement,
+    getActiveAgreements,
+    getAgreementEvents,
+    saveDraft
 } = require("../controllers/agreementController");
 
-// CREATE agreement (final save)
-router.post("/", createAgreement);
-
-// PREVIEW agreement
+// ==========================
+// PREVIEW AGREEMENT (TEMP SAVE)
+// ==========================
 router.post("/preview", previewAgreement);
 
-// ACCEPT / REJECT STATUS + STORE EMAILS + TIMESTAMP
-router.put("/:id/status", updateStatus);
+// ==========================
+// CREATE AGREEMENT (FINAL SAVE)
+// ONLY PROVIDER
+// ==========================
+router.post("/", protect, authorize("provider"), createAgreement);
+
+// ==========================
+// SAVE DRAFT (PROVIDER → CLIENT)
+// ==========================
+router.post("/draft", protect, authorize("provider"), saveDraft);
+
+// ==========================
+// GET ACTIVE AGREEMENTS
+// BOTH CLIENT + PROVIDER
+// ==========================
+router.get("/active", protect, getActiveAgreements);
+
+// ==========================
+// GET TIMELINE / EVENTS
+// BOTH CLIENT + PROVIDER
+// ==========================
+router.get("/:id/events", protect, getAgreementEvents);
+
+// ==========================
+// ACCEPT / REJECT AGREEMENT
+// ==========================
+router.patch("/:id/status", protect, updateStatus);
 
 module.exports = router;
