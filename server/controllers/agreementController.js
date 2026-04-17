@@ -7,7 +7,11 @@ const AgreementAction = require("../models/AgreementAction");
 const createAgreement = async (req, res) => {
   try {
     const agreement = await Agreement.create(req.body);
-    res.status(201).json(agreement);
+
+    res.status(201).json({
+      msg: "Agreement created successfully",
+      agreement,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -15,26 +19,45 @@ const createAgreement = async (req, res) => {
 
 // ==========================
 // PREVIEW AGREEMENT
-// (temporary save for confirmation page)
 // ==========================
 const previewAgreement = async (req, res) => {
   try {
     const agreement = await Agreement.create(req.body);
-    res.status(201).json(agreement); // MUST return _id for frontend
+
+    res.status(201).json(agreement);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ==========================
-// ACCEPT / REJECT (FINAL ACTION)
+// SAVE DRAFT (SEND TO CLIENT)
+// ==========================
+const saveDraft = async (req, res) => {
+  try {
+    const agreement = await Agreement.create({
+      ...req.body,
+      status: "pending",
+    });
+
+    res.status(201).json({
+      msg: "Draft sent to client successfully",
+      agreement,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ==========================
+// ACCEPT / REJECT AGREEMENT
 // ==========================
 const updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
 
-    const normalizedStatus = String(status || "").toLowerCase();
+    const normalizedStatus = String(status).toLowerCase();
 
     if (!["accepted", "rejected"].includes(normalizedStatus)) {
       return res.status(400).json({
@@ -48,21 +71,21 @@ const updateStatus = async (req, res) => {
       return res.status(404).json({ error: "Agreement not found" });
     }
 
-    // ❌ BLOCK DOUBLE DECISION
-    if (agreement.status && agreement.status !== "pending") {
+    // ❌ prevent double action
+    if (agreement.status !== "pending") {
       return res.status(400).json({
         error: "Agreement already finalized",
       });
     }
 
     // ==========================
-    // UPDATE AGREEMENT STATUS
+    // UPDATE STATUS
     // ==========================
     agreement.status = normalizedStatus;
     await agreement.save();
 
     // ==========================
-    // STORE ACTION (TIMELINE + AUDIT LOG)
+    // LOG ACTION (TIMELINE)
     // ==========================
     const action = await AgreementAction.create({
       agreementId: id,
@@ -72,11 +95,10 @@ const updateStatus = async (req, res) => {
     });
 
     res.json({
-      message: "Status updated successfully",
+      msg: "Status updated successfully",
       agreement,
       action,
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -89,19 +111,19 @@ const getActiveAgreements = async (req, res) => {
   try {
     const { userEmail } = req.query;
 
-    const activeAgreements = await Agreement.find({
-      status: { $in: ["accepted", "rejected"] },
+    const agreements = await Agreement.find({
+      status: { $in: ["pending", "accepted", "rejected"] },
     }).sort({ updatedAt: -1 });
 
     const normalized = String(userEmail || "").toLowerCase();
 
     const filtered = normalized
-      ? activeAgreements.filter((a) =>
+      ? agreements.filter((a) =>
           [a.clientEmail, a.providerEmail]
             .map((e) => String(e).toLowerCase())
             .includes(normalized)
         )
-      : activeAgreements;
+      : agreements;
 
     res.json(filtered);
   } catch (err) {
@@ -115,7 +137,6 @@ const getActiveAgreements = async (req, res) => {
 const getAgreementEvents = async (req, res) => {
   try {
     const { id } = req.params;
-    const { userEmail } = req.query;
 
     const agreement = await Agreement.findById(id).lean();
     if (!agreement) {
@@ -136,7 +157,6 @@ const getAgreementEvents = async (req, res) => {
         key: a._id,
         title: a.status === "accepted" ? "Accepted" : "Rejected",
         time: a.createdAt,
-        email: a.clientEmail,
       })),
     ].sort((a, b) => new Date(a.time) - new Date(b.time));
 
@@ -146,15 +166,18 @@ const getAgreementEvents = async (req, res) => {
       status: agreement.status,
       timeline,
     });
-
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// ==========================
+// EXPORT (FIXED - SINGLE EXPORT)
+// ==========================
 module.exports = {
   createAgreement,
   previewAgreement,
+  saveDraft,
   updateStatus,
   getActiveAgreements,
   getAgreementEvents,

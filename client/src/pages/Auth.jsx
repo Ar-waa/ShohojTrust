@@ -1,46 +1,46 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api"; // Make sure the path to your api.js is correct
-
+import API from "../api";
 
 const Auth = () => {
   const [isSignup, setIsSignup] = useState(false);
-  const [role, setRole] = useState("client"); // Default role
+  const [role, setRole] = useState("client");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  
-const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    // Always hit /auth, send isSignup as a flag
-    const { data } = await API.post("/auth", { 
-      email, 
-      password, 
-      role: isSignup ? role : undefined, 
-      isSignup 
-    });
+    try {
+      const { data } = await API.post("/auth", {
+        email,
+        password,
+        role: isSignup ? role : undefined,
+        isSignup
+      });
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-    alert(data.msg);
-    const userRole = data.user.role; 
+      alert(data.msg);
 
-    if (userRole === "admin") {
-      navigate("/admin");
-    } else if (userRole === "provider") {
-      navigate("/provider");
-    } else {
-      navigate("/client");
+      const userRole = data.user.role;
+
+      // ✅ FIXED ROUTES HERE
+      if (userRole === "admin") {
+        navigate("/admin");
+      } else if (userRole === "provider") {
+        navigate("/provider-dashboard");
+      } else {
+        navigate("/client-dashboard");
+      }
+
+    } catch (err) {
+      console.log("AUTH ERROR:", err.response?.data);
+      alert(err.response?.data?.msg || "Authentication failed.");
     }
-  } catch (err) {
-    alert(err.response?.data?.msg || "Authentication failed.");
-  }
-};
-
+  };
 
   return (
     <div className="auth-page">
@@ -84,6 +84,7 @@ const handleSubmit = async (e) => {
                   />
                   <span>Client</span>
                 </label>
+
                 <label className={`radio-item ${role === 'provider' ? 'selected' : ''}`}>
                   <input 
                     type="radio" 

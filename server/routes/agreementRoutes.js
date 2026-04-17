@@ -8,32 +8,40 @@ const {
     previewAgreement,
     getActiveAgreements,
     getAgreementEvents,
+    saveDraft
 } = require("../controllers/agreementController");
 
 // ==========================
 // PREVIEW AGREEMENT (TEMP SAVE)
-// MUST COME BEFORE "/:id"
 // ==========================
 router.post("/preview", previewAgreement);
 
 // ==========================
 // CREATE AGREEMENT (FINAL SAVE)
+// ONLY PROVIDER
 // ==========================
 router.post("/", protect, authorize("provider"), createAgreement);
 
 // ==========================
-// GET ACTIVE AGREEMENTS
+// SAVE DRAFT (PROVIDER → CLIENT)
 // ==========================
-router.get("/active", protect, authorize("provider"), getActiveAgreements);
+router.post("/draft", protect, authorize("provider"), saveDraft);
+
+// ==========================
+// GET ACTIVE AGREEMENTS
+// BOTH CLIENT + PROVIDER
+// ==========================
+router.get("/active", protect, getActiveAgreements);
 
 // ==========================
 // GET TIMELINE / EVENTS
+// BOTH CLIENT + PROVIDER
 // ==========================
-router.get("/:id/events", protect, authorize("provider"), getAgreementEvents);
+router.get("/:id/events", protect, getAgreementEvents);
 
 // ==========================
 // ACCEPT / REJECT AGREEMENT
 // ==========================
-router.patch("/:id/status", updateStatus);
+router.patch("/:id/status", protect, updateStatus);
 
 module.exports = router;

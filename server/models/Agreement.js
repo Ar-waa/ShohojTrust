@@ -5,55 +5,34 @@ const agreementSchema = new mongoose.Schema(
     providerEmail: {
       type: String,
       required: true,
-      trim: true,
       lowercase: true,
+      trim: true,
     },
 
     clientEmail: {
       type: String,
       required: true,
-      trim: true,
       lowercase: true,
+      trim: true,
     },
 
     title: {
       type: String,
       trim: true,
+      required: true,
     },
 
-    category: {
-      type: String,
-      trim: true,
-    },
+    terms: String,
+    category: String,
+    date: String,
+    amount: String,
+    penalty: String,
 
-    terms: {
-      type: String,
-    },
-
-    date: {
-      type: String,
-    },
-
-    amount: {
-      type: String,
-    },
-
-    penalty: {
-      type: String,
-    },
-
-    // ==========================
-    // MAIN STATUS (IMPORTANT)
-    // ==========================
+    // ✅ IMPORTANT STATUS FIELD
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected"],
       default: "pending",
-    },
-
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
     },
   },
   { timestamps: true }

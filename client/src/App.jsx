@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import ProviderDashboard from "./pages/ProviderDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
 import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
@@ -11,6 +12,9 @@ import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
 
 import "./styles/global.css";
 
+// ==========================
+// PROTECTED ROUTE
+// ==========================
 const PrivateRoute = ({ children, allowedRoles }) => {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -19,7 +23,7 @@ const PrivateRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  if (!allowedRoles.includes(user.role)) {
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return <Navigate to="/unauthorized" replace />;
   }
 
@@ -32,29 +36,77 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/provider" element={<PrivateRoute allowedRoles={['provider', 'admin']}> <ProviderDashboard /> </PrivateRoute>} />
-        <Route path="/templates" element={<PrivateRoute allowedRoles={['provider', 'admin']}><Templates /></PrivateRoute>} />
-        <Route path="/agreements" element={<PrivateRoute><ActiveAgreements /></PrivateRoute>}/>
-        <Route path="/agreement-activity-timeline" element={<PrivateRoute><AgreementActivityTimeline /></PrivateRoute>} />
-        <Route path="/agreement-activity-timeline/:agreementId" element={<PrivateRoute><AgreementActivityTimeline /></PrivateRoute>} />
-        <Route path="/agreement-confirmation" element={<PrivateRoute><AgreementConfirmation /></PrivateRoute>} /> 
+
+        {/* DASHBOARDS (PROTECTED) */}
+        <Route
+          path="/provider-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["provider"]}>
+              <ProviderDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/client-dashboard"
+          element={
+            <PrivateRoute allowedRoles={["client"]}>
+              <ClientDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        {/* OTHER ROUTES */}
+        <Route
+          path="/templates"
+          element={
+            <PrivateRoute allowedRoles={["provider", "admin"]}>
+              <Templates />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreements"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <ActiveAgreements />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-activity-timeline"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-activity-timeline/:agreementId"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementActivityTimeline />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/agreement-confirmation"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <AgreementConfirmation />
+            </PrivateRoute>
+          }
+        />
+
+        {/* OPTIONAL */}
+        <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
-// // Usage in your Routes:
-// <Routes>
-//   <Route path="/admin" element={
-//     <ProtectedRoute allowedRoles={['admin']}> <AdminDashboard /> </ProtectedRoute>
-//   } />
-//   <Route path="/provider" element={
-//     <ProtectedRoute allowedRoles={['provider']}> <ProviderDashboard /> </ProtectedRoute>
-//   } />
-//   <Route path="/client" element={
-//     <ProtectedRoute allowedRoles={['client']}> <ClientDashboard /> </ProtectedRoute>
-//   } />
-// </Routes>
-
