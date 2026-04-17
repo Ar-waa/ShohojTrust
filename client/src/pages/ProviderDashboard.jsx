@@ -6,7 +6,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import API from "../api";
 
-const Dashboard = () => {
+const ProviderDashboard = () => {
 
     const location = useLocation();
     const template = location.state?.template;
@@ -264,4 +264,4 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard;
+export default ProviderDashboard;

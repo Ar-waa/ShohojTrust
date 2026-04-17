@@ -14,26 +14,30 @@ const Auth = () => {
 const handleSubmit = async (e) => {
   e.preventDefault();
 
-  // Determine which endpoint to hit
-  const url = isSignup ? "/auth/signup" : "/auth/login";
-  
-  // Data to send
-  const authData = isSignup 
-    ? { email, password, role } 
-    : { email, password };
-
   try {
-    const { data } = await API.post(url, authData);
+    // Always hit /auth, send isSignup as a flag
+    const { data } = await API.post("/auth", { 
+      email, 
+      password, 
+      role: isSignup ? role : undefined, 
+      isSignup 
+    });
 
-    // Save the response from your MongoDB backend
     localStorage.setItem("token", data.token);
     localStorage.setItem("user", JSON.stringify(data.user));
 
-    alert(data.msg || "Success!");
-    navigate("/dashboard");
+    alert(data.msg);
+    const userRole = data.user.role; 
+
+    if (userRole === "admin") {
+      navigate("/admin");
+    } else if (userRole === "provider") {
+      navigate("/provider");
+    } else {
+      navigate("/client");
+    }
   } catch (err) {
-    // Axios puts the server error message in err.response.data
-    alert(err.response?.data?.msg || "Authentication failed. Please try again.");
+    alert(err.response?.data?.msg || "Authentication failed.");
   }
 };
 

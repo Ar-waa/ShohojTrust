@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { protect, authorize } = require("../middleware/authMiddleware");
 
 const {
     createAgreement,
@@ -18,17 +19,17 @@ router.post("/preview", previewAgreement);
 // ==========================
 // CREATE AGREEMENT (FINAL SAVE)
 // ==========================
-router.post("/", createAgreement);
+router.post("/", protect, authorize("provider"), createAgreement);
 
 // ==========================
 // GET ACTIVE AGREEMENTS
 // ==========================
-router.get("/active", getActiveAgreements);
+router.get("/active", protect, authorize("provider"), getActiveAgreements);
 
 // ==========================
 // GET TIMELINE / EVENTS
 // ==========================
-router.get("/:id/events", getAgreementEvents);
+router.get("/:id/events", protect, authorize("provider"), getAgreementEvents);
 
 // ==========================
 // ACCEPT / REJECT AGREEMENT
