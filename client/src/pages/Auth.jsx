@@ -1,39 +1,54 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// import API from "../api";
+import API from "../api"; // Make sure the path to your api.js is correct
+
 
 const Auth = () => {
   const [isSignup, setIsSignup] = useState(false);
+  const [role, setRole] = useState("client"); // Default role
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      // fake login
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          email,
-          role: isSignup ? "signup" : "login",
-        })
-      );
+  // Determine which endpoint to hit
+  const url = isSignup ? "/auth/signup" : "/auth/login";
+  
+  // Data to send
+  const authData = isSignup 
+    ? { email, password, role } 
+    : { email, password };
 
-      // TEMP: no backend yet
-      navigate("/dashboard");
-    } catch (err) {
-      alert(err.response?.data?.msg || "Auth failed");
-    }
-  };
+  try {
+    const { data } = await API.post(url, authData);
+
+    // Save the response from your MongoDB backend
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    alert(data.msg || "Success!");
+    navigate("/dashboard");
+  } catch (err) {
+    // Axios puts the server error message in err.response.data
+    alert(err.response?.data?.msg || "Authentication failed. Please try again.");
+  }
+};
+
 
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h2 className="logo center">ShohojTrust</h2>
+        <div className="auth-header">
+          <h2 className="logo-text">ShohojTrust</h2>
+          <p className="auth-subtitle">
+            {isSignup ? "Create your professional account" : "Welcome back! Please login"}
+          </p>
+        </div>
 
-        <div className="auth-toggle">
+        <div className="auth-toggle-pill">
           <button
             type="button"
             className={!isSignup ? "active" : ""}
@@ -41,7 +56,6 @@ const Auth = () => {
           >
             Login
           </button>
-
           <button
             type="button"
             className={isSignup ? "active" : ""}
@@ -52,37 +66,71 @@ const Auth = () => {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
           {isSignup && (
-            <input type="password" placeholder="Confirm Password" required />
+            <div className="role-selection">
+              <p className="role-label">Register as:</p>
+              <div className="radio-group">
+                <label className={`radio-item ${role === 'client' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="client" 
+                    checked={role === 'client'} 
+                    onChange={(e) => setRole(e.target.value)} 
+                  />
+                  <span>Client</span>
+                </label>
+                <label className={`radio-item ${role === 'provider' ? 'selected' : ''}`}>
+                  <input 
+                    type="radio" 
+                    name="role" 
+                    value="provider" 
+                    checked={role === 'provider'} 
+                    onChange={(e) => setRole(e.target.value)} 
+                  />
+                  <span>Provider</span>
+                </label>
+              </div>
+            </div>
           )}
 
-          {!isSignup && <p className="forgot">Forgot Password?</p>}
+          <div className="input-group">
+            <input
+              type="email"
+              placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-          <button type="submit" className="btn primary full">
-            {isSignup ? "Create Account" : "Login"}
+          <div className="input-group">
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          {isSignup && (
+            <div className="input-group">
+              <input type="password" placeholder="Confirm Password" required />
+            </div>
+          )}
+
+          {!isSignup && <p className="forgot-link">Forgot Password?</p>}
+
+          <button type="submit" className="btn-modern">
+            {isSignup ? "Get Started" : "Sign In"}
           </button>
         </form>
 
-        <p className="switch-text">
-          {isSignup ? "Already have an account?" : "Don’t have an account?"}
+        <p className="switch-prompt">
+          {isSignup ? "Already have an account?" : "New to ShohojTrust?"}
           <span onClick={() => setIsSignup(!isSignup)}>
-            {isSignup ? " Login" : " Sign Up"}
+            {isSignup ? " Log in" : " Create account"}
           </span>
         </p>
       </div>
@@ -91,97 +139,3 @@ const Auth = () => {
 };
 
 export default Auth;
-// import React, { useState } from "react";
-// import { useNavigate } from "react-router-dom";
-// import API from "../api";
-
-// const Auth = () => {
-//     const [isSignup, setIsSignup] = useState(false);
-//     const [email, setEmail] = useState("");
-//     const [password, setPassword] = useState("");
-//     const navigate = useNavigate();
-
-//     const [form, setForm] = useState({
-//     email: "",
-//     password: "",
-// });
-
-//     const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//         // fake login
-//         localStorage.setItem("user", JSON.stringify({
-//             email,
-//             role: isSignup ? "signup" : "login"
-//         }));
-//         // TEMP: no backend yet
-//         navigate("/dashboard");
-//         }
-//     } catch (err) {
-//         alert(err.response?.data?.msg || "Auth failed");
-//     }
-
-
-
-//     return (
-//         <div className="auth-page">
-//         <div className="auth-card">
-
-//             <h2 className="logo center">ShohojTrust</h2>
-
-//             <div className="auth-toggle">
-//             <button
-//                 className={!isSignup ? "active" : ""}
-//                 onClick={() => setIsSignup(false)}
-//             >
-//                 Login
-//             </button>
-
-//             <button
-//                 className={isSignup ? "active" : ""}
-//                 onClick={() => setIsSignup(true)}
-//             >
-//                 Sign Up
-//             </button>
-//             </div>
-
-//             <form className="auth-form" onSubmit={handleSubmit}>
-//             <input
-//                 type="email"
-//                 placeholder="Email"
-//                 value={email}
-//                 onChange={(e) => setEmail(e.target.value)}
-//                 required
-//             />
-//             <input
-//                 type="password"
-//                 placeholder="Password"
-//                 value={password}
-//                 onChange={(e) => setPassword(e.target.value)}
-//                 required
-//             />
-
-//             {isSignup && (
-//                 <input type="password" placeholder="Confirm Password" required />
-//             )}
-
-//             {!isSignup && <p className="forgot">Forgot Password?</p>}
-
-//             <button className="btn primary full">
-//                 {isSignup ? "Create Account" : "Login"}
-//             </button>
-//             </form>
-
-//             <p className="switch-text">
-//             {isSignup ? "Already have an account?" : "Don’t have an account?"}
-//             <span onClick={() => setIsSignup(!isSignup)}>
-//                 {isSignup ? " Login" : " Sign Up"}
-//             </span>
-//             </p>
-
-//         </div>
-//         </div>
-//     );
-// // };
-
-// export default Auth;
