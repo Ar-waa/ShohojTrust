@@ -11,20 +11,23 @@ const agreementActionSchema = new mongoose.Schema(
     providerEmail: {
       type: String,
       required: true,
+      trim: true,
     },
 
     clientEmail: {
       type: String,
       required: true,
+      trim: true,
     },
 
+    // 🔥 FINAL STATUS FIELD (IMPORTANT FOR UI CONTROL)
     status: {
       type: String,
-      enum: ["accepted", "rejected"],
-      required: true,
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
     },
   },
-  { timestamps: true } // 👈 this gives createdAt (your timestamp)
+  { timestamps: true } // createdAt = timestamp of action
 );
 
 module.exports = mongoose.model("AgreementAction", agreementActionSchema);

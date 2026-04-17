@@ -9,19 +9,30 @@ const {
     getAgreementEvents,
 } = require("../controllers/agreementController");
 
-// CREATE agreement (final save)
-router.post("/", createAgreement);
-
-// PREVIEW agreement
+// ==========================
+// PREVIEW AGREEMENT (TEMP SAVE)
+// MUST COME BEFORE "/:id"
+// ==========================
 router.post("/preview", previewAgreement);
 
-// ACCEPT / REJECT STATUS + STORE EMAILS + TIMESTAMP
-router.put("/:id/status", updateStatus);
+// ==========================
+// CREATE AGREEMENT (FINAL SAVE)
+// ==========================
+router.post("/", createAgreement);
 
-// GET ACTIVE AGREEMENTS (LATEST ACCEPTED/REJECTED STATUS)
+// ==========================
+// GET ACTIVE AGREEMENTS
+// ==========================
 router.get("/active", getActiveAgreements);
 
-// GET AGREEMENT ACTIVITY TIMELINE (FOR SINGLE AGREEMENT)
+// ==========================
+// GET TIMELINE / EVENTS
+// ==========================
 router.get("/:id/events", getAgreementEvents);
+
+// ==========================
+// ACCEPT / REJECT AGREEMENT
+// ==========================
+router.patch("/:id/status", updateStatus);
 
 module.exports = router;

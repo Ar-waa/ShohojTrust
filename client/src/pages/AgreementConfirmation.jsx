@@ -1,17 +1,32 @@
 import React, { useEffect, useState } from "react";
 import "../styles/global.css";
 import jsPDF from "jspdf";
+import { useNavigate } from "react-router-dom";
 
 const AgreementConfirmation = () => {
 
   const [agreement, setAgreement] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate(); // ✅ ADDED
 
   useEffect(() => {
     const data = JSON.parse(localStorage.getItem("previewAgreement"));
     setAgreement(data);
+    setStatus(data?.status || "pending");
   }, []);
 
-  // ✅ PDF DOWNLOAD
+  // ==========================
+  // BACK TO DASHBOARD
+  // ==========================
+  const goToDashboard = () => {
+    navigate("/dashboard");
+  };
+
+  // ==========================
+  // PDF DOWNLOAD
+  // ==========================
   const downloadPDF = () => {
     const doc = new jsPDF();
 
@@ -29,36 +44,52 @@ const AgreementConfirmation = () => {
     doc.save("agreement.pdf");
   };
 
-  // ✅ UPDATED BACKEND FUNCTION (THIS IS YOUR REQUIRED FIX)
-  const handleAction = async (status) => {
+  // ==========================
+  // ACCEPT / REJECT HANDLER
+  // ==========================
+  const handleAction = async (actionStatus) => {
     try {
       if (!agreement?._id) {
-        alert("Agreement not found. Please create/preview again.");
+        alert("Agreement not found. Please preview again.");
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/agreements/${agreement._id}/status`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          status,
-          clientEmail: agreement.clientEmail,
-          providerEmail: agreement.providerEmail
-        })
-      });
+      setLoading(true);
+
+      const res = await fetch(
+        `http://localhost:5000/api/agreements/${agreement._id}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            status: actionStatus,
+            clientEmail: agreement.clientEmail,
+            providerEmail: agreement.providerEmail
+          })
+        }
+      );
 
       const data = await res.json();
+
       if (!res.ok) {
-        throw new Error(data?.error || "Failed to update status");
+        throw new Error(data?.error || "Update failed");
       }
 
-      alert("Updated: " + status);
+      setStatus(actionStatus);
+      setAgreement((prev) => ({
+        ...prev,
+        status: actionStatus
+      }));
+
+      alert(`Agreement ${actionStatus}`);
 
     } catch (err) {
       console.log(err);
-      alert(err.message || "Failed to update status");
+      alert(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,11 +100,20 @@ const AgreementConfirmation = () => {
 
         <div className="content">
 
+          {/* HEADER */}
           <div className="page-header">
             <div>
               <h2>Confirm Agreement</h2>
-              <p className="subtext">Review and confirm your agreement details</p>
+              <p className="subtext">
+                Current Status: <b>{status}</b>
+              </p>
             </div>
+
+            {/* ✅ BACK BUTTON ADDED HERE */}
+            <button className="btn secondary" onClick={goToDashboard}>
+              ⬅ Back to Dashboard
+            </button>
+
           </div>
 
           <div className="dashboard-grid">
@@ -84,21 +124,17 @@ const AgreementConfirmation = () => {
                 <h3>Agreement Summary</h3>
 
                 <div className="agreement-box">
-                  <p><b>Title:</b> {agreement?.title || "Not provided"}</p>
-                  <p><b>Terms:</b> {agreement?.terms || "Not provided"}</p>
-                  <p><b>Deadline:</b> {agreement?.date || "Not provided"}</p>
-                  <p><b>Payment:</b> {agreement?.amount || "0"} BDT</p>
-                  <p><b>Penalty:</b> {agreement?.penalty || "0"}%</p>
+                  <p><b>Title:</b> {agreement?.title}</p>
+                  <p><b>Terms:</b> {agreement?.terms}</p>
+                  <p><b>Deadline:</b> {agreement?.date}</p>
+                  <p><b>Payment:</b> {agreement?.amount} BDT</p>
+                  <p><b>Penalty:</b> {agreement?.penalty}%</p>
                 </div>
 
                 <div className="template-actions">
 
                   <button className="btn secondary" onClick={downloadPDF}>
                     📄 Download PDF
-                  </button>
-
-                  <button className="btn secondary">
-                    📧 Send Email
                   </button>
 
                 </div>
@@ -114,31 +150,50 @@ const AgreementConfirmation = () => {
               <div className="timeline">
                 <div className="step done">🟢 Created</div>
                 <div className="step done">🟢 Sent</div>
-                <div className="step pending">🟡 Pending Confirmation</div>
-                <div className="step">⚪ Activated</div>
+
+                <div className={`step ${status === "pending" ? "pending" : "done"}`}>
+                  🟡 Pending Confirmation
+                </div>
+
+                <div className={`step ${status === "accepted" ? "done" : ""}`}>
+                  ⚪ Accepted
+                </div>
+
+                <div className={`step ${status === "rejected" ? "done" : ""}`}>
+                  ⚪ Rejected
+                </div>
               </div>
 
             </div>
 
           </div>
 
-          {/* ✅ UPDATED BUTTONS */}
-          <div className="template-actions" style={{ marginTop: "30px", justifyContent: "center" }}>
+          {/* ACTION BUTTONS */}
+          <div
+            className="template-actions"
+            style={{ marginTop: "30px", justifyContent: "center", gap: "20px" }}
+          >
 
             <button
               onClick={() => handleAction("accepted")}
               className="btn primary"
+              disabled={status !== "pending" || loading}
+              style={{
+                opacity: status !== "pending" ? 0.5 : 1,
+                cursor: status !== "pending" ? "not-allowed" : "pointer"
+              }}
             >
               ✅ Accept
-            </button>
-
-            <button className="btn secondary">
-              ✏️ Request Modification
             </button>
 
             <button
               onClick={() => handleAction("rejected")}
               className="btn danger"
+              disabled={status !== "pending" || loading}
+              style={{
+                opacity: status !== "pending" ? 0.5 : 1,
+                cursor: status !== "pending" ? "not-allowed" : "pointer"
+              }}
             >
               ❌ Reject
             </button>
