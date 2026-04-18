@@ -28,7 +28,7 @@ import {
         name: "Active Agreements",
         path: "/agreements",
         icon: <FileText size={18} />
-},
+    },
         {
         name: "Agreement Activity Timeline",
         path: "/agreement-activity-timeline",

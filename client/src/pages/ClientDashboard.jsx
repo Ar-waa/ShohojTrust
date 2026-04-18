@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -9,42 +9,53 @@ import {
   Settings,
   LogOut
 } from "lucide-react";
+import "./ActiveAgreements.css";
 
 const ClientDashboard = () => {
   const [agreements, setAgreements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // ==========================
-  // FETCH AGREEMENTS
-  // ==========================
   useEffect(() => {
     fetchAgreements();
   }, []);
 
   const fetchAgreements = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      setLoading(true);
+      setError("");
 
-      const res = await fetch(
-        `http://localhost:5000/api/agreements/active?userEmail=${user.email}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`
-          }
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      const userEmail = user?.email ? encodeURIComponent(user.email) : "";
+
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const endpoint = userEmail
+        ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
+        : `${apiBase}/api/agreements/active`;
+
+      const res = await fetch(endpoint, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`
         }
-      );
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch active agreements");
+      }
 
       const data = await res.json();
-
       setAgreements(Array.isArray(data) ? data : []);
     } catch (err) {
       console.log(err);
+      setError(err.message || "Something went wrong");
+      setAgreements([]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ==========================
-  // PREVIEW
-  // ==========================
   const handlePreview = (item) => {
     localStorage.setItem("previewAgreement", JSON.stringify(item));
     navigate("/agreement-confirmation");
@@ -64,13 +75,17 @@ const ClientDashboard = () => {
   // SIDEBAR ITEMS
   // ==========================
   const menu = [
-    { name: "Dashboard", icon: <LayoutDashboard size={18} /> },
-    { name: "Active Agreements", icon: <FileText size={18} /> },
-    { name: "Agreement Activity Timeline", icon: <History size={18} /> },
+    { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/client-dashboard" },
+    { name: "Active Agreements", icon: <FileText size={18} />, path: "/agreements" },
+    { name: "Agreement Activity Timeline", icon: <History size={18} />, path: "/agreement-activity-timeline" },
     { name: "Trust Score", icon: <ShieldCheck size={18} /> },
     { name: "Analytics", icon: <BarChart3 size={18} /> },
     { name: "Settings", icon: <Settings size={18} /> }
   ];
+
+  const acceptedCount = agreements.filter((i) => i.status === "accepted").length;
+  const rejectedCount = agreements.filter((i) => i.status === "rejected").length;
+  const pendingCount = agreements.filter((i) => !i.status || i.status === "pending").length;
 
   return (
     <div className="dashboard">
@@ -83,7 +98,12 @@ const ClientDashboard = () => {
 
         <div className="menu">
           {menu.map((item, index) => (
-            <div key={index} className="menu-item">
+            <div
+              key={index}
+              className={`menu-item ${item.path && location.pathname === item.path ? "active" : ""}`}
+              onClick={() => item.path && navigate(item.path)}
+              style={{ cursor: item.path ? "pointer" : "default" }}
+            >
               {item.icon}
               <span>{item.name}</span>
             </div>
@@ -121,36 +141,98 @@ const ClientDashboard = () => {
             </div>
           </div>
 
-          {/* ==========================
-              AGREEMENTS GRID
-          ========================== */}
-          <div className="agreement-grid">
+          <div className="aa-wrapper">
+            <div className="aa-card">
 
-            {agreements.length === 0 ? (
-              <p>No agreements yet</p>
-            ) : (
-              agreements.map((item) => (
-                <div className="agreement-card" key={item._id}>
+              <div className="aa-card-header">
+                <h1>Active Agreements</h1>
+                <p>Review and preview your active agreements</p>
+              </div>
 
-                  <h3>{item.title}</h3>
+              {loading ? (
+                <div className="aa-empty">Loading agreements...</div>
+              ) : (
+                <>
+                  <table className="aa-table">
+                    <thead>
+                      <tr>
+                        <th>Title</th>
+                        <th>Provider Email</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
 
-                  <p className="agreement-desc">
-                    {item.terms?.slice(0, 80)}...
-                  </p>
+                    <tbody>
+                      {error ? (
+                        <tr>
+                          <td colSpan="4" className="aa-empty aa-error">
+                            {error}
+                          </td>
+                        </tr>
+                      ) : agreements.length === 0 ? (
+                        <tr>
+                          <td colSpan="4" className="aa-empty">
+                            No agreements yet.
+                          </td>
+                        </tr>
+                      ) : (
+                        agreements.map((item) => (
+                          <tr key={item._id}>
+                            <td>{item.title || "Untitled Agreement"}</td>
 
-                  <div className="template-actions">
-                    <button
-                      className="btn primary"
-                      onClick={() => handlePreview(item)}
-                    >
-                      Preview
-                    </button>
+                            <td>
+                              <span className="aa-email">{item.providerEmail || "N/A"}</span>
+                            </td>
+
+                            <td>
+                              <span
+                                className={`aa-badge ${
+                                  item.status === "accepted"
+                                    ? "accepted"
+                                    : item.status === "rejected"
+                                      ? "rejected"
+                                      : "pending"
+                                }`}
+                              >
+                                <span className="aa-badge-icon">
+                                  {item.status === "accepted"
+                                    ? "✔"
+                                    : item.status === "rejected"
+                                      ? "✕"
+                                      : "⏳"}
+                                </span>
+                                {item.status === "accepted"
+                                  ? "Accepted"
+                                  : item.status === "rejected"
+                                    ? "Rejected"
+                                    : "Pending"}
+                              </span>
+                            </td>
+
+                            <td>
+                              <button
+                                className="btn primary"
+                                onClick={() => handlePreview(item)}
+                              >
+                                Preview
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+
+                  <div className="aa-card-footer">
+                    <span>Showing {agreements.length} agreements</span>
+                    <span className="aa-count-pill">
+                      🟡 {pendingCount} Pending · 🟢 {acceptedCount} Accepted · 🔴 {rejectedCount} Rejected
+                    </span>
                   </div>
-
-                </div>
-              ))
-            )}
-
+                </>
+              )}
+            </div>
           </div>
 
         </div>

@@ -37,9 +37,14 @@ const AgreementActivityTimeline = () => {
         setError("");
         const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
         const query = userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : "";
-        const res = await fetch(`${apiBase}/api/agreements/${agreementId}/events${query}`);
+        const res = await fetch(`${apiBase}/api/agreements/${agreementId}/events${query}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+          },
+        });
         if (!res.ok) {
-          throw new Error("Failed to load timeline data");
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.msg || errData.error || "Failed to load timeline data");
         }
 
         const data = await res.json();
@@ -118,9 +123,6 @@ const AgreementActivityTimeline = () => {
                 </div>
               )}
 
-              <p className="timeline-api-footer">
-                API ready: <span>/api/agreements/{agreementMeta?.agreementId || agreementId || "id"}/events</span>
-              </p>
             </div>
           </div>
         </div>

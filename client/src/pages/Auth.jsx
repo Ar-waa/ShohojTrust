@@ -29,7 +29,7 @@ const Auth = () => {
 
       // ✅ FIXED ROUTES HERE
       if (userRole === "admin") {
-        navigate("/admin");
+        navigate("/templates");
       } else if (userRole === "provider") {
         navigate("/provider-dashboard");
       } else {
@@ -138,6 +138,15 @@ const Auth = () => {
             {isSignup ? " Log in" : " Create account"}
           </span>
         </p>
+
+        {!isSignup && (
+          <p className="switch-prompt" style={{ marginTop: "8px" }}>
+            Need admin access?
+            <span onClick={() => navigate("/admin")}>
+              {" Admin Login"}
+            </span>
+          </p>
+        )}
       </div>
     </div>
   );

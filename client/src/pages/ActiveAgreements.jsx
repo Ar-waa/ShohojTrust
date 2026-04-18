@@ -4,64 +4,61 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import "./ActiveAgreements.css";
 
+/**
+ * @typedef {Object} AgreementItem
+ * @property {string} _id
+ * @property {string} title
+ * @property {string} clientEmail
+ * @property {string} providerEmail
+ * @property {"accepted" | "rejected" | "pending"} status
+ */
+
 const ActiveAgreements = () => {
     const navigate = useNavigate();
-
+    /** @type {[AgreementItem[], Function]} */
     const [agreements, setAgreements] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // ==========================
-    // FETCH DATA
-    // ==========================
-    const fetchAgreements = async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-            const user = JSON.parse(localStorage.getItem("user") || "null");
-            const userEmail = user?.email ? encodeURIComponent(user.email) : "";
-
-            const endpoint = userEmail
-                ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
-                : `${apiBase}/api/agreements/active`;
-
-            const res = await fetch(endpoint);
-
-            if (!res.ok) throw new Error("Failed to fetch active agreements");
-
-            const data = await res.json();
-            setAgreements(Array.isArray(data) ? data : []);
-
-        } catch (err) {
-            setError(err.message || "Something went wrong");
-            setAgreements([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchAgreements = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                const user = JSON.parse(localStorage.getItem("user") || "null");
+                const userEmail = user?.email ? encodeURIComponent(user.email) : "";
+                const endpoint = userEmail
+                    ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
+                    : `${apiBase}/api/agreements/active`;
+
+                const res = await fetch(endpoint, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token") || ""}`
+                    }
+                });
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(() => ({}));
+                    throw new Error(errData.msg || errData.error || "Failed to fetch active agreements");
+                }
+
+                const data = await res.json();
+                setAgreements(Array.isArray(data) ? data : []);
+            } catch (err) {
+                setError(err.message || "Something went wrong");
+                setAgreements([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
         fetchAgreements();
     }, []);
 
-    // ==========================
-    // OPTIONAL: LIVE REFRESH HOOK
-    // (gives "real app feel")
-    // ==========================
-    useEffect(() => {
-        const interval = setInterval(() => {
-            fetchAgreements();
-        }, 10000); // refresh every 10s
-
-        return () => clearInterval(interval);
-    }, []);
-
-    const acceptedCount = agreements.filter((i) => i.status === "accepted").length;
-    const rejectedCount = agreements.filter((i) => i.status === "rejected").length;
-    const pendingCount = agreements.filter((i) => !i.status || i.status === "pending").length;
+    const acceptedCount = agreements.filter((item) => item.status === "accepted").length;
+    const rejectedCount = agreements.filter((item) => item.status === "rejected").length;
 
     return (
         <div className="dashboard">
@@ -120,31 +117,10 @@ const ActiveAgreements = () => {
 
                                                         <td>{item.title || "Untitled Agreement"}</td>
 
+                                                        <td><span className="aa-email">{item.clientEmail}</span></td>
+                                                        <td><span className="aa-email">{item.providerEmail}</span></td>
                                                         <td>
-                                                            <span className="aa-email">
-                                                                {item.clientEmail}
-                                                            </span>
-                                                        </td>
-
-                                                        <td>
-                                                            <span className="aa-email">
-                                                                {item.providerEmail}
-                                                            </span>
-                                                        </td>
-
-                                                        {/* ==========================
-                                                            STATUS BADGE (IMPROVED)
-                                                        ========================== */}
-                                                        <td>
-                                                            <span
-                                                                className={`aa-badge ${
-                                                                    item.status === "accepted"
-                                                                        ? "accepted"
-                                                                        : item.status === "rejected"
-                                                                        ? "rejected"
-                                                                        : "pending"
-                                                                }`}
-                                                            >
+                                                            <span className={`aa-badge ${item.status || "pending"}`}>
                                                                 <span className="aa-badge-icon">
                                                                     {item.status === "accepted"
                                                                         ? "✔"
@@ -152,7 +128,6 @@ const ActiveAgreements = () => {
                                                                         ? "✕"
                                                                         : "⏳"}
                                                                 </span>
-
                                                                 {item.status === "accepted"
                                                                     ? "Accepted"
                                                                     : item.status === "rejected"
@@ -167,14 +142,10 @@ const ActiveAgreements = () => {
                                         </tbody>
                                     </table>
 
-                                    {/* ==========================
-                                        FOOTER STATS
-                                    ========================== */}
                                     <div className="aa-card-footer">
                                         <span>Showing {agreements.length} agreements</span>
-
                                         <span className="aa-count-pill">
-                                            🟡 {pendingCount} Pending · 🟢 {acceptedCount} Accepted · 🔴 {rejectedCount} Rejected
+                                            {acceptedCount} Accepted · {rejectedCount} Rejected
                                         </span>
                                     </div>
                                 </>

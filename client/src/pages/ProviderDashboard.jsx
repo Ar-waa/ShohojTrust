@@ -10,9 +10,11 @@ const ProviderDashboard = () => {
     const location = useLocation();
     const template = location.state?.template;
     const navigate = useNavigate();
+    const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+    const providerEmailFromSession = currentUser?.email || "";
 
     const [form, setForm] = useState({
-        providerEmail: "",
+        providerEmail: providerEmailFromSession,
         clientEmail: "",
         title: "",
         category: "",
@@ -62,7 +64,7 @@ const ProviderDashboard = () => {
             setForm({
                 title: template.title || "",
                 clientEmail: "",
-                providerEmail: "",
+                providerEmail: providerEmailFromSession,
                 category: template.category || "",
                 terms: template.desc || "",
                 date: "",
@@ -70,7 +72,7 @@ const ProviderDashboard = () => {
                 penalty: ""
             });
         }
-    }, [template]);
+    }, [template, providerEmailFromSession]);
 
     // ⭐ NEW BACKEND FUNCTION (ONLY ADDITION)
     const handlePreview = async () => {

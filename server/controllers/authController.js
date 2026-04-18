@@ -5,18 +5,23 @@ const bcrypt = require("bcryptjs");
 const authUser = async (req, res) => {
     try {
         const { email, password, role, isSignup } = req.body;
+        const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+        if (!normalizedEmail || !password) {
+            return res.status(400).json({ msg: "Email and password are required" });
+        }
 
         // ==========================
         // SIGNUP
         // ==========================
         if (isSignup) {
-            const existingUser = await User.findOne({ email });
+            const existingUser = await User.findOne({ email: normalizedEmail });
             if (existingUser) {
                 return res.status(400).json({ msg: "User already exists" });
             }
 
             const newUser = new User({
-                email,
+                email: normalizedEmail,
                 password,
                 role: role || "client" // ✅ fallback safety
             });
@@ -42,9 +47,30 @@ const authUser = async (req, res) => {
         }
 
         // ==========================
+        // STATIC ADMIN LOGIN
+        // ==========================
+        if (normalizedEmail === "admin@gmail.com" && password === "1234") {
+            const token = jwt.sign(
+                { id: "static-admin", role: "admin" },
+                process.env.JWT_SECRET,
+                { expiresIn: "1d" }
+            );
+
+            return res.json({
+                token,
+                user: {
+                    id: "static-admin",
+                    email: "admin@gmail.com",
+                    role: "admin"
+                },
+                msg: "Login successful"
+            });
+        }
+
+        // ==========================
         // LOGIN
         // ==========================
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: normalizedEmail });
         if (!user) {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
@@ -72,6 +98,15 @@ const authUser = async (req, res) => {
 
     } catch (err) {
         console.error("AUTH ERROR:", err);
+
+        if (err && err.code === 11000) {
+            return res.status(400).json({ msg: "User already exists" });
+        }
+
+        if (err && err.name === "ValidationError") {
+            return res.status(400).json({ msg: err.message });
+        }
+
         res.status(500).json({ msg: "Server error", error: err.message });
     }
 };

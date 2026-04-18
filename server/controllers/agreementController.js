@@ -35,8 +35,19 @@ const previewAgreement = async (req, res) => {
 // ==========================
 const saveDraft = async (req, res) => {
   try {
+    const providerEmail = String(req.body.providerEmail || "").trim().toLowerCase();
+    const clientEmail = String(req.body.clientEmail || "").trim().toLowerCase();
+
+    if (!providerEmail || !clientEmail) {
+      return res.status(400).json({
+        msg: "Provider and client emails are required",
+      });
+    }
+
     const agreement = await Agreement.create({
       ...req.body,
+      providerEmail,
+      clientEmail,
       status: "pending",
     });
 
@@ -110,17 +121,22 @@ const updateStatus = async (req, res) => {
 const getActiveAgreements = async (req, res) => {
   try {
     const { userEmail } = req.query;
+    const requesterRole = req.user?.role;
 
     const agreements = await Agreement.find({
       status: { $in: ["pending", "accepted", "rejected"] },
     }).sort({ updatedAt: -1 });
 
-    const normalized = String(userEmail || "").toLowerCase();
+    if (requesterRole === "admin") {
+      return res.json(agreements);
+    }
+
+    const normalized = String(userEmail || "").trim().toLowerCase();
 
     const filtered = normalized
       ? agreements.filter((a) =>
           [a.clientEmail, a.providerEmail]
-            .map((e) => String(e).toLowerCase())
+            .map((e) => String(e || "").trim().toLowerCase())
             .includes(normalized)
         )
       : agreements;
@@ -137,10 +153,21 @@ const getActiveAgreements = async (req, res) => {
 const getAgreementEvents = async (req, res) => {
   try {
     const { id } = req.params;
+    const { userEmail } = req.query;
+    const requesterRole = req.user?.role;
 
     const agreement = await Agreement.findById(id).lean();
     if (!agreement) {
       return res.status(404).json({ error: "Agreement not found" });
+    }
+
+    const normalizedUserEmail = String(userEmail || "").trim().toLowerCase();
+    const isParticipant = [agreement.clientEmail, agreement.providerEmail]
+      .map((e) => String(e || "").trim().toLowerCase())
+      .includes(normalizedUserEmail);
+
+    if (requesterRole !== "admin" && normalizedUserEmail && !isParticipant) {
+      return res.status(403).json({ error: "You are not authorized to view this agreement timeline" });
     }
 
     const actions = await AgreementAction.find({ agreementId: id })
@@ -151,11 +178,24 @@ const getAgreementEvents = async (req, res) => {
       {
         key: "created",
         title: "Agreement Created",
+        description: `Provider ${agreement.providerEmail} sent this agreement to client ${agreement.clientEmail}.`,
+        icon: "send",
+        iconColor: "blue",
+        badge: "SENT",
+        badgeType: "paid",
         time: agreement.createdAt,
       },
       ...actions.map((a) => ({
         key: a._id,
-        title: a.status === "accepted" ? "Accepted" : "Rejected",
+        title: a.status === "accepted" ? "Agreement Accepted" : "Agreement Rejected",
+        description:
+          a.status === "accepted"
+            ? `Client ${agreement.clientEmail} accepted the agreement.`
+            : `Client ${agreement.clientEmail} rejected the agreement.`,
+        icon: a.status === "accepted" ? "check" : "alert",
+        iconColor: a.status === "accepted" ? "green" : "orange",
+        badge: a.status === "accepted" ? "SIGNED" : "REJECTED",
+        badgeType: a.status === "accepted" ? "signed" : "reminder",
         time: a.createdAt,
       })),
     ].sort((a, b) => new Date(a.time) - new Date(b.time));
@@ -163,6 +203,8 @@ const getAgreementEvents = async (req, res) => {
     res.json({
       agreementId: agreement._id,
       title: agreement.title,
+      clientEmail: agreement.clientEmail,
+      providerEmail: agreement.providerEmail,
       status: agreement.status,
       timeline,
     });

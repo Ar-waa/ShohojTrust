@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import Templates from "./pages/Templates";
@@ -36,6 +37,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
+        <Route path="/admin" element={<Admin />} />
 
         {/* DASHBOARDS (PROTECTED) */}
         <Route
@@ -69,7 +71,7 @@ function App() {
         <Route
           path="/agreements"
           element={
-            <PrivateRoute allowedRoles={["client", "provider"]}>
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
               <ActiveAgreements />
             </PrivateRoute>
           }
@@ -78,7 +80,7 @@ function App() {
         <Route
           path="/agreement-activity-timeline"
           element={
-            <PrivateRoute allowedRoles={["client", "provider"]}>
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
               <AgreementActivityTimeline />
             </PrivateRoute>
           }
@@ -87,7 +89,7 @@ function App() {
         <Route
           path="/agreement-activity-timeline/:agreementId"
           element={
-            <PrivateRoute allowedRoles={["client", "provider"]}>
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
               <AgreementActivityTimeline />
             </PrivateRoute>
           }
