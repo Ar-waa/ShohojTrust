@@ -79,7 +79,7 @@ const ClientDashboard = () => {
     { name: "Active Agreements", icon: <FileText size={18} />, path: "/agreements" },
     { name: "Agreement Activity Timeline", icon: <History size={18} />, path: "/agreement-activity-timeline" },
     { name: "Trust Score", icon: <ShieldCheck size={18} /> },
-    { name: "Analytics", icon: <BarChart3 size={18} /> },
+    { name: "Analytics", icon: <BarChart3 size={18} /> , path: "/agreements/:agreementId/analytics"},
     { name: "Settings", icon: <Settings size={18} /> }
   ];
 

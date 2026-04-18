@@ -10,6 +10,7 @@ import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
 import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
+import Analytics from "./pages/Analytics";
 
 import "./styles/global.css";
 
@@ -103,6 +104,16 @@ function App() {
             </PrivateRoute>
           }
         />
+
+        <Route
+          path= "/agreements/:agreementId/analytics"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
+              <Analytics />
+            </PrivateRoute>
+          }
+        />
+
 
         {/* OPTIONAL */}
         <Route path="/unauthorized" element={<h2>Unauthorized Access</h2>} />

@@ -21,7 +21,8 @@ const protect = (req, res, next) => {
         // attach user to request
         req.user = {
             id: decoded.id,
-            role: decoded.role
+            role: decoded.role,
+            email: decoded.email
         };
 
         next();

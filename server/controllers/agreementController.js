@@ -1,5 +1,6 @@
 const Agreement = require("../models/Agreement");
 const AgreementAction = require("../models/AgreementAction");
+const { logEvent } = require("../services/eventService");
 
 // ==========================
 // CREATE FINAL AGREEMENT
@@ -7,6 +8,12 @@ const AgreementAction = require("../models/AgreementAction");
 const createAgreement = async (req, res) => {
   try {
     const agreement = await Agreement.create(req.body);
+
+    await logEvent({
+    user: req.user,
+    action: "CREATE_TEMPLATE",
+    agreementId: agreement._id,
+  });
 
     res.status(201).json({
       msg: "Agreement created successfully",
@@ -50,6 +57,12 @@ const saveDraft = async (req, res) => {
       clientEmail,
       status: "pending",
     });
+
+    await logEvent({
+    user: req.user,
+    action: "SEND_AGREEMENT",
+    agreementId: agreement._id,
+  });
 
     res.status(201).json({
       msg: "Draft sent to client successfully",
@@ -104,6 +117,18 @@ const updateStatus = async (req, res) => {
       clientEmail: agreement.clientEmail,
       providerEmail: agreement.providerEmail,
     });
+
+  const actionType =
+    normalizedStatus === "accepted"
+      ? "CONFIRM_AGREEMENT"
+      : "REJECT_AGREEMENT";
+
+  await logEvent({
+    user: req.user,
+    action: actionType,
+    agreementId: agreement._id,
+  });
+
 
     res.json({
       msg: "Status updated successfully",
@@ -213,9 +238,6 @@ const getAgreementEvents = async (req, res) => {
   }
 };
 
-// ==========================
-// EXPORT (FIXED - SINGLE EXPORT)
-// ==========================
 module.exports = {
   createAgreement,
   previewAgreement,

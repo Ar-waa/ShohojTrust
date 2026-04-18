@@ -14,7 +14,7 @@ const {
 // ==========================
 // PREVIEW AGREEMENT (TEMP SAVE)
 // ==========================
-router.post("/preview", previewAgreement);
+router.post("/preview", protect, previewAgreement);
 
 // ==========================
 // CREATE AGREEMENT (FINAL SAVE)
@@ -42,6 +42,7 @@ router.get("/:id/events", protect, getAgreementEvents);
 // ==========================
 // ACCEPT / REJECT AGREEMENT
 // ==========================
-router.patch("/:id/status", protect, updateStatus);
+router.patch("/:id/status", protect, authorize("client"), updateStatus);
+
 
 module.exports = router;
