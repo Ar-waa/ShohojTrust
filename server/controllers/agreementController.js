@@ -3,22 +3,27 @@ const AgreementAction = require("../models/AgreementAction");
 const { logEvent } = require("../services/eventService");
 
 // ==========================
-// CREATE FINAL AGREEMENT
+// CREATE AGREEMENT
 // ==========================
 const createAgreement = async (req, res) => {
   try {
     const agreement = await Agreement.create(req.body);
 
     await logEvent({
-    user: req.user,
-    action: "CREATE_TEMPLATE",
-    agreementId: agreement._id,
-  });
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+      },
+      action: "CREATE_TEMPLATE",
+      agreementId: agreement._id,
+    });
 
     res.status(201).json({
       msg: "Agreement created successfully",
       agreement,
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -32,13 +37,14 @@ const previewAgreement = async (req, res) => {
     const agreement = await Agreement.create(req.body);
 
     res.status(201).json(agreement);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ==========================
-// SAVE DRAFT (SEND TO CLIENT)
+// SAVE DRAFT
 // ==========================
 const saveDraft = async (req, res) => {
   try {
@@ -59,22 +65,27 @@ const saveDraft = async (req, res) => {
     });
 
     await logEvent({
-    user: req.user,
-    action: "SEND_AGREEMENT",
-    agreementId: agreement._id,
-  });
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+      },
+      action: "SEND_AGREEMENT",
+      agreementId: agreement._id,
+    });
 
     res.status(201).json({
       msg: "Draft sent to client successfully",
       agreement,
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ==========================
-// ACCEPT / REJECT AGREEMENT
+// ACCEPT / REJECT
 // ==========================
 const updateStatus = async (req, res) => {
   try {
@@ -95,22 +106,15 @@ const updateStatus = async (req, res) => {
       return res.status(404).json({ error: "Agreement not found" });
     }
 
-    // ❌ prevent double action
     if (agreement.status !== "pending") {
       return res.status(400).json({
         error: "Agreement already finalized",
       });
     }
 
-    // ==========================
-    // UPDATE STATUS
-    // ==========================
     agreement.status = normalizedStatus;
     await agreement.save();
 
-    // ==========================
-    // LOG ACTION (TIMELINE)
-    // ==========================
     const action = await AgreementAction.create({
       agreementId: id,
       status: normalizedStatus,
@@ -118,30 +122,34 @@ const updateStatus = async (req, res) => {
       providerEmail: agreement.providerEmail,
     });
 
-  const actionType =
-    normalizedStatus === "accepted"
-      ? "CONFIRM_AGREEMENT"
-      : "REJECT_AGREEMENT";
+    const actionType =
+      normalizedStatus === "accepted"
+        ? "CONFIRM_AGREEMENT"
+        : "REJECT_AGREEMENT";
 
-  await logEvent({
-    user: req.user,
-    action: actionType,
-    agreementId: agreement._id,
-  });
-
+    await logEvent({
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+      },
+      action: actionType,
+      agreementId: agreement._id,
+    });
 
     res.json({
       msg: "Status updated successfully",
       agreement,
       action,
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
 // ==========================
-// ACTIVE AGREEMENTS LIST
+// ACTIVE AGREEMENTS
 // ==========================
 const getActiveAgreements = async (req, res) => {
   try {
@@ -167,6 +175,7 @@ const getActiveAgreements = async (req, res) => {
       : agreements;
 
     res.json(filtered);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -187,12 +196,15 @@ const getAgreementEvents = async (req, res) => {
     }
 
     const normalizedUserEmail = String(userEmail || "").trim().toLowerCase();
+
     const isParticipant = [agreement.clientEmail, agreement.providerEmail]
       .map((e) => String(e || "").trim().toLowerCase())
       .includes(normalizedUserEmail);
 
     if (requesterRole !== "admin" && normalizedUserEmail && !isParticipant) {
-      return res.status(403).json({ error: "You are not authorized to view this agreement timeline" });
+      return res.status(403).json({
+        error: "Not authorized",
+      });
     }
 
     const actions = await AgreementAction.find({ agreementId: id })
@@ -203,24 +215,11 @@ const getAgreementEvents = async (req, res) => {
       {
         key: "created",
         title: "Agreement Created",
-        description: `Provider ${agreement.providerEmail} sent this agreement to client ${agreement.clientEmail}.`,
-        icon: "send",
-        iconColor: "blue",
-        badge: "SENT",
-        badgeType: "paid",
         time: agreement.createdAt,
       },
       ...actions.map((a) => ({
         key: a._id,
-        title: a.status === "accepted" ? "Agreement Accepted" : "Agreement Rejected",
-        description:
-          a.status === "accepted"
-            ? `Client ${agreement.clientEmail} accepted the agreement.`
-            : `Client ${agreement.clientEmail} rejected the agreement.`,
-        icon: a.status === "accepted" ? "check" : "alert",
-        iconColor: a.status === "accepted" ? "green" : "orange",
-        badge: a.status === "accepted" ? "SIGNED" : "REJECTED",
-        badgeType: a.status === "accepted" ? "signed" : "reminder",
+        title: a.status === "accepted" ? "Accepted" : "Rejected",
         time: a.createdAt,
       })),
     ].sort((a, b) => new Date(a.time) - new Date(b.time));
@@ -228,11 +227,10 @@ const getAgreementEvents = async (req, res) => {
     res.json({
       agreementId: agreement._id,
       title: agreement.title,
-      clientEmail: agreement.clientEmail,
-      providerEmail: agreement.providerEmail,
       status: agreement.status,
       timeline,
     });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

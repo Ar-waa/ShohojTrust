@@ -18,6 +18,12 @@ const userSchema = new mongoose.Schema({
         default: "client",
         required: true 
     },
+
+    trustScore: {
+        type: Number,
+        default: 10 // neutral starting score
+    },
+
     createdAt: { 
         type: Date, 
         default: Date.now 

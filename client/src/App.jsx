@@ -12,6 +12,8 @@ import AgreementConfirmation from "./pages/AgreementConfirmation";
 import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
 import Analytics from "./pages/Analytics";
 
+import TrustScore from "./pages/TrustScore";
+
 import "./styles/global.css";
 
 // ==========================
@@ -39,6 +41,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/trust-score" element={<TrustScore />} />
 
         {/* DASHBOARDS (PROTECTED) */}
         <Route

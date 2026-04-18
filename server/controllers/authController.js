@@ -29,7 +29,7 @@ const authUser = async (req, res) => {
             await newUser.save();
 
             const token = jwt.sign(
-                { id: newUser._id, role: newUser.role, email: newUserser.email },
+                { id: newUser._id, role: newUser.role, email: newUser.email },
                 process.env.JWT_SECRET,
                 { expiresIn: "1d" }
             );
