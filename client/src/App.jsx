@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
+import TrustScore from "./pages/TrustScore";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
@@ -11,8 +12,6 @@ import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
 import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
 import Analytics from "./pages/Analytics";
-
-import TrustScore from "./pages/TrustScore";
 
 import "./styles/global.css";
 
@@ -41,8 +40,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/trust-score" element={<TrustScore />} />
-
+        <Route path="/trust" element={<TrustScore />} />
         {/* DASHBOARDS (PROTECTED) */}
         <Route
           path="/provider-dashboard"
