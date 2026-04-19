@@ -41,8 +41,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/admin" element={<Admin />} />
-        <Route path="/trust-score" element={<TrustScore />} />
-
+        <Route path="/trust" element={<TrustScore />} />
         {/* DASHBOARDS (PROTECTED) */}
         <Route
           path="/provider-dashboard"

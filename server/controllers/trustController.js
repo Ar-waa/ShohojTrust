@@ -2,7 +2,7 @@ const User = require("../models/User");
 const TrustConfig = require("../models/TrustConfig");
 
 // ==========================
-// GET TRUST SCORE (USER)
+// GET OWN TRUST SCORE
 // ==========================
 const getTrustScore = async (req, res) => {
   try {
@@ -13,8 +13,24 @@ const getTrustScore = async (req, res) => {
     }
 
     res.json({
-      trustScore: user.trustScore || 0
+      trustScore: user.trustScore || 0,
+      email: user.email,
+      role: user.role
     });
+
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// ==========================
+// GET ALL USERS TRUST SCORES
+// ==========================
+const getAllTrustScores = async (req, res) => {
+  try {
+    const users = await User.find().select("email role trustScore");
+
+    res.json(users);
 
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -47,5 +63,6 @@ const updateWeights = async (req, res) => {
 
 module.exports = {
   getTrustScore,
+  getAllTrustScores,
   updateWeights
 };
