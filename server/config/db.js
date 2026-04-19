@@ -16,7 +16,7 @@ const isSrvLookupError = (err) => {
 
 const connectDB = async () => {
     const primaryUri = process.env.MONGO_URI;
-    const fallbackUri = process.env.MONGO_URI_FALLBACK || "mongodb://127.0.0.1:27017/ShohojTrust";
+    const fallbackUri = process.env.MONGO_URI_FALLBACK || "mongodb://127.0.0.1:27017/shohojtrust";
     //console.log("Connected DB:", mongoose.connection.name);
 
     try {

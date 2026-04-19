@@ -6,6 +6,7 @@ import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import ProviderDashboard from "./pages/ProviderDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
+import Payment from "./pages/Payment";
 import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
@@ -57,6 +58,15 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["client"]}>
               <ClientDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/payment"
+          element={
+            <PrivateRoute allowedRoles={["client"]}>
+              <Payment />
             </PrivateRoute>
           }
         />

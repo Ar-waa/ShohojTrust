@@ -6,7 +6,8 @@ import {
     ShieldCheck,
     BarChart3,
     Settings,
-    History
+    History,
+    CreditCard
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -32,6 +33,9 @@ const Sidebar = () => {
             path: dashboardPath, // ✅ FIXED HERE
             icon: <LayoutDashboard size={18} />
         },
+        ...(role === "client"
+            ? [{ name: "Payment", path: "/payment", icon: <CreditCard size={18} /> }]
+            : []),
         {
             name: "Templates",
             path: "/templates",

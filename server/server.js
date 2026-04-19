@@ -16,14 +16,20 @@ app.use("/api/agreements", require("./routes/agreementRoutes"));
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
 app.use("/api/trust", require("./routes/trustRoutes"));
+app.use("/api/payments", require("./routes/paymentRoutes"));
 
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
     try {
         await connectDB();
-        app.listen(PORT, () => {
+        const server = app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
+        });
+        
+        // Prevent process from exiting
+        server.on('error', (err) => {
+            console.error("Server error:", err.message);
         });
     } catch (err) {
         console.error("Failed to connect to MongoDB.", err.message);
@@ -32,6 +38,16 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Handle uncaught errors
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+    process.exit(1);
+});
 
 //
 // const express = require("express");

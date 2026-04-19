@@ -6,6 +6,7 @@ import {
   History,
   ShieldCheck,
   BarChart3,
+  CreditCard,
   Settings,
   LogOut
 } from "lucide-react";
@@ -76,6 +77,7 @@ const ClientDashboard = () => {
   // ==========================
   const menu = [
     { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/client-dashboard" },
+    { name: "Payment", icon: <CreditCard size={18} />, path: "/payment" },
     { name: "Active Agreements", icon: <FileText size={18} />, path: "/agreements" },
     { name: "Agreement Activity Timeline", icon: <History size={18} />, path: "/agreement-activity-timeline" },
     { name: "Trust Score", icon: <ShieldCheck size={18} />, path: "/trust" },
