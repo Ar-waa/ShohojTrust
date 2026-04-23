@@ -80,8 +80,7 @@ const TrustScore = () => {
           {/* MY SCORE */}
           <div className="card">
             <h3>My Trust Score</h3>
-            <h1>{myData?.trustScore ?? 0} </h1>
-            <p>{myData?.email}</p>
+           <h1 style={{ color: "#1f8f3a", fontWeight: "bold" }}>{myData?.trustScore || 0}</h1>            <p>{myData?.email}</p>
           </div>
 
           {/* USERS TABLE */}

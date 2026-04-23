@@ -29,22 +29,35 @@ const AgreementConfirmation = () => {
   // ==========================
   // PDF DOWNLOAD
   // ==========================
-  const downloadPDF = () => {
-    const doc = new jsPDF();
+const downloadPDF = async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/pdf/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: agreement?.title,
+        terms: agreement?.terms,
+        date: agreement?.date,
+        amount: agreement?.amount,
+        penalty: agreement?.penalty
+      })
+    });
 
-    doc.setFontSize(16);
-    doc.text("Agreement Confirmation", 20, 20);
+    const blob = await res.blob();
 
-    doc.setFontSize(12);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "agreement.pdf";
+    a.click();
 
-    doc.text(`Title: ${agreement?.title || ""}`, 20, 40);
-    doc.text(`Terms: ${agreement?.terms || ""}`, 20, 50);
-    doc.text(`Deadline: ${agreement?.date || ""}`, 20, 60);
-    doc.text(`Payment: ${agreement?.amount || ""} BDT`, 20, 70);
-    doc.text(`Penalty: ${agreement?.penalty || ""}%`, 20, 80);
-
-    doc.save("agreement.pdf");
-  };
+  } catch (err) {
+    console.log(err);
+    alert("PDF download failed");
+  }
+};
 
   // ==========================
   // ACCEPT / REJECT HANDLER
