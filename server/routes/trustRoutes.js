@@ -12,12 +12,14 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 // ==========================
 // GET MY TRUST SCORE 
 // ==========================
+
+console.log("✅ TRUST ROUTES LOADED");
 router.get("/trust-score", protect, getTrustScore);
 
 // ==========================
 // GET ALL USERS TRUST SCORES
 // ==========================
-router.get("/all", protect, getAllTrustScores);
+router.get("/all",protect,  getAllTrustScores);
 
 // ==========================
 // ADMIN UPDATE WEIGHTS

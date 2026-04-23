@@ -18,6 +18,10 @@ app.use("/api/events", require("./routes/eventRoutes"));
 app.use("/api/trust", require("./routes/trustRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 
+app.get("/test", (req, res) => {
+  res.send("Server is working");
+});
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {

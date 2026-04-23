@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
+const API = "http://localhost:5000/api/trust";
+
 const TrustScore = () => {
   const [users, setUsers] = useState([]);
   const [myData, setMyData] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     fetchTrustData();
@@ -14,28 +17,34 @@ const TrustScore = () => {
 
   const fetchTrustData = async () => {
     try {
-      const token = localStorage.getItem("token");
+      console.log("TOKEN:", token); // debug if needed
 
       // ==========================
-      // GET MY SCORE
+      // MY TRUST SCORE
       // ==========================
-      const res1 = await fetch("http://localhost:5000/api/trust", {
+      const res1 = await fetch(`${API}/trust-score`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
+
+      if (!res1.ok) throw new Error("Failed to fetch my trust score");
 
       const my = await res1.json();
       setMyData(my);
 
       // ==========================
-      // GET ALL USERS
+      // ALL USERS
       // ==========================
-      const res2 = await fetch("http://localhost:5000/api/trust/all", {
+      const res2 = await fetch(`${API}/all`, {
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
       });
+
+      if (!res2.ok) throw new Error("Failed to fetch users");
 
       const allUsers = await res2.json();
 
@@ -45,46 +54,37 @@ const TrustScore = () => {
       let filtered = [];
 
       if (user.role === "client") {
-        filtered = allUsers.filter(u => u.role === "provider");
-      } 
-      else if (user.role === "provider") {
-        filtered = allUsers.filter(u => u.role === "client");
-      } 
-      else {
-        filtered = allUsers; // admin
+        filtered = allUsers.filter((u) => u.role === "provider");
+      } else if (user.role === "provider") {
+        filtered = allUsers.filter((u) => u.role === "client");
+      } else {
+        filtered = allUsers;
       }
 
       setUsers(filtered);
-
     } catch (err) {
-      console.log(err);
+      console.log("Trust fetch error:", err.message);
     }
   };
 
   return (
     <div className="dashboard">
-
       <Sidebar />
 
       <div className="main">
         <Topbar />
 
         <div className="content">
-
           <h2>Trust Score</h2>
 
-          {/* ==========================
-              MY SCORE
-          ========================== */}
+          {/* MY SCORE */}
           <div className="card">
             <h3>My Trust Score</h3>
-            <h1>{myData?.trustScore || 0} / 100</h1>
+            <h1>{myData?.trustScore ?? 0} </h1>
             <p>{myData?.email}</p>
           </div>
 
-          {/* ==========================
-              OTHER USERS
-          ========================== */}
+          {/* USERS TABLE */}
           <div className="card" style={{ marginTop: "20px" }}>
             <h3>
               {user.role === "admin"
@@ -113,18 +113,16 @@ const TrustScore = () => {
                     <tr key={u._id}>
                       <td>{u.email}</td>
                       <td>{u.role}</td>
-                      <td>{u.trustScore || 0}</td>
+                      <td>{u.trustScore ?? 0}</td>
                     </tr>
                   ))
                 )}
               </tbody>
             </table>
-
           </div>
 
         </div>
       </div>
-
     </div>
   );
 };

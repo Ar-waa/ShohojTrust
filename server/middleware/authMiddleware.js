@@ -7,6 +7,8 @@ const protect = (req, res, next) => {
     try {
         let token = req.headers.authorization;
 
+        console.log("AUTH HEADER:", req.headers.authorization);
+
         if (!token) {
             return res.status(401).json({ msg: "No token, authorization denied" });
         }
