@@ -13,9 +13,12 @@ const AgreementActivityTimeline = () => {
   const [error, setError] = useState("");
   const [isMarking, setIsMarking] = useState(false);
 
-  const userEmail = useMemo(() => {
+  const { userEmail, userRole } = useMemo(() => {
     const user = JSON.parse(localStorage.getItem("user") || "null");
-    return user?.email || "";
+    return {
+      userEmail: user?.email || "",
+      userRole: user?.role || ""
+    };
   }, []);
 
   const getEventIcon = (icon) => {
@@ -70,8 +73,8 @@ const AgreementActivityTimeline = () => {
     load();
   }, [agreementId, userEmail]);
 
-  const handleMarkCompleted = async () => {
-    if (!window.confirm("Are you sure you want to mark this agreement as completed?")) return;
+  const handleMarkDone = async () => {
+    if (!window.confirm("Are you sure you want to mark this agreement as done?")) return;
     
     setIsMarking(true);
     try {
@@ -85,13 +88,13 @@ const AgreementActivityTimeline = () => {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || errData.msg || "Failed to mark as completed");
+        throw new Error(errData.error || errData.msg || "Failed to mark as done");
       }
 
       // Reload the page to get the updated status and timeline
       window.location.reload();
     } catch (err) {
-      alert(err.message || "Failed to mark as completed");
+      alert(err.message || "Failed to mark as done");
     } finally {
       setIsMarking(false);
     }
@@ -116,14 +119,14 @@ const AgreementActivityTimeline = () => {
                     Agreement ID: {agreementMeta?.agreementId || agreementId || "N/A"}
                   </p>
                 </div>
-                {agreementMeta && (agreementMeta.status === "accepted" || agreementMeta.status === "paid") && (
+                {agreementMeta && agreementMeta.status === "accepted" && userRole === "provider" && (
                   <button 
                     className="aa-btn aa-btn-accept" 
-                    onClick={handleMarkCompleted}
+                    onClick={handleMarkDone}
                     disabled={isMarking}
                     style={{ padding: '8px 16px', borderRadius: '4px', border: 'none', backgroundColor: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
                   >
-                    {isMarking ? "Processing..." : "Mark as Completed"}
+                    {isMarking ? "Processing..." : "Mark as Done"}
                   </button>
                 )}
               </div>

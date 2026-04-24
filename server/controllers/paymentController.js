@@ -1,6 +1,7 @@
 const Payment = require("../models/Payment");
 const Agreement = require("../models/Agreement");
 const User = require("../models/User");
+const AgreementAction = require("../models/AgreementAction");
 const { generateTransactionId } = require("../utils/transactionUtils");
 
 // ✅ CONFIRM PAYMENT
@@ -28,8 +29,8 @@ const confirmPayment = async (req, res) => {
       return res.status(403).json({ msg: "You are not authorized to pay this agreement" });
     }
 
-    if (agreement.status !== "accepted") {
-      return res.status(400).json({ msg: "Only accepted agreements can be paid" });
+    if (agreement.status !== "work_done") {
+      return res.status(400).json({ msg: "Only completed work (status: work_done) can be paid" });
     }
 
     // Check if payment already exists for this agreement
@@ -78,9 +79,25 @@ const confirmPayment = async (req, res) => {
 
     await payment.save();
 
-    // Update agreement status to "paid" (optional - create new status or mark complete)
-    agreement.status = "paid";
+    // Update agreement status straight to "completed"
+    agreement.status = "completed";
     await agreement.save();
+
+    // Log both events in the timeline simultaneously
+    await AgreementAction.create([
+      {
+        agreementId,
+        status: "paid",
+        clientEmail,
+        providerEmail: agreement.providerEmail,
+      },
+      {
+        agreementId,
+        status: "completed",
+        clientEmail,
+        providerEmail: agreement.providerEmail,
+      }
+    ]);
 
     // Update trust scores for both client and provider
     await updateTrustScores(clientEmail, agreement.providerEmail, parsedAmount);
@@ -166,10 +183,10 @@ const getPendingPayments = async (req, res) => {
   try {
     const clientEmail = req.user.email;
 
-    // Get all accepted agreements for this client that haven't been paid yet
+    // Get all work_done agreements for this client that haven't been paid yet
     const acceptedAgreements = await Agreement.find({
       clientEmail,
-      status: "accepted"
+      status: "work_done"
     });
 
     const agreementIds = acceptedAgreements.map(a => a._id);

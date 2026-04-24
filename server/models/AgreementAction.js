@@ -23,7 +23,7 @@ const agreementActionSchema = new mongoose.Schema(
     // 🔥 FINAL STATUS FIELD (IMPORTANT FOR UI CONTROL)
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected", "paid", "cancelled", "completed"],
+      enum: ["pending", "accepted", "rejected", "paid", "cancelled", "completed", "work_done"],
       default: "pending",
     },
   },

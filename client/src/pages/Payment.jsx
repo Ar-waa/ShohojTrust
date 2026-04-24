@@ -41,10 +41,10 @@ const Payment = () => {
       if (!res.ok) throw new Error("Failed to fetch agreements");
       
       const data = await res.json();
-      const acceptedAgreements = (Array.isArray(data) ? data : []).filter(
-        (a) => a.status === "accepted"
+      const workDoneAgreements = (Array.isArray(data) ? data : []).filter(
+        (a) => a.status === "work_done"
       );
-      setAgreements(acceptedAgreements);
+      setAgreements(workDoneAgreements);
     } catch (err) {
       console.error("Error fetching agreements:", err);
     } finally {
@@ -130,7 +130,7 @@ const Payment = () => {
                       <label className="payment-label">Select Agreement</label>
                       <div className="agreement-list">
                         {agreements.length === 0 ? (
-                          <p className="aa-empty">No accepted agreements available for payment.</p>
+                          <p className="aa-empty">No completed work available for payment.</p>
                         ) : (
                           agreements.map((agr) => (
                             <div

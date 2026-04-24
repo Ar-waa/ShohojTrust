@@ -157,7 +157,7 @@ const getActiveAgreements = async (req, res) => {
     const requesterRole = req.user?.role;
 
     const agreements = await Agreement.find({
-      status: { $in: ["pending", "accepted", "rejected", "paid"] },
+      status: { $in: ["pending", "accepted", "rejected", "paid", "work_done"] },
     }).sort({ updatedAt: -1 });
 
     if (requesterRole === "admin") {
@@ -249,18 +249,18 @@ const completeAgreement = async (req, res) => {
       return res.status(404).json({ error: "Agreement not found" });
     }
 
-    if (!["accepted", "paid"].includes(agreement.status)) {
+    if (agreement.status !== "accepted") {
       return res.status(400).json({
-        error: "Only accepted or paid agreements can be marked as completed",
+        error: "Only accepted agreements can be marked as done",
       });
     }
 
-    agreement.status = "completed";
+    agreement.status = "work_done";
     await agreement.save();
 
     const action = await AgreementAction.create({
       agreementId: id,
-      status: "completed",
+      status: "work_done",
       clientEmail: agreement.clientEmail,
       providerEmail: agreement.providerEmail,
     });
@@ -276,7 +276,7 @@ const completeAgreement = async (req, res) => {
     });
 
     res.json({
-      msg: "Agreement marked as completed successfully",
+      msg: "Agreement marked as done successfully",
       agreement,
       action,
     });

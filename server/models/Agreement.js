@@ -31,7 +31,7 @@ const agreementSchema = new mongoose.Schema(
     // ✅ IMPORTANT STATUS FIELD
     status: {
       type: String,
-      enum: ["pending", "accepted", "rejected", "paid", "cancelled", "completed"],
+      enum: ["pending", "accepted", "rejected", "paid", "cancelled", "completed", "work_done"],
       default: "pending",
     },
   },

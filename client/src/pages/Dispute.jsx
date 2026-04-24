@@ -44,7 +44,9 @@ const Dispute = () => {
 
             if (res.ok) {
                 const data = await res.json();
-                const activeArr = Array.isArray(data) ? data : [];
+                const activeArr = (Array.isArray(data) ? data : []).filter(
+                    a => a.status === "accepted" || a.status === "paid"
+                );
                 setAgreements(activeArr);
                 if (activeArr.length > 0) {
                     setSelectedAgreementId(activeArr[0]._id);
