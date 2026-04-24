@@ -7,7 +7,8 @@ import {
     BarChart3,
     Settings,
     History,
-    CreditCard
+    CreditCard,
+    AlertCircle
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -65,6 +66,11 @@ const Sidebar = () => {
             name: "Settings",
             path: "/settings",
             icon: <Settings size={18} />
+        },
+        {
+            name: "Dispute",
+            path: "/dispute",
+            icon: <AlertCircle size={18} />
         }
     ];
 

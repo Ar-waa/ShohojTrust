@@ -8,7 +8,8 @@ import {
   BarChart3,
   CreditCard,
   Settings,
-  LogOut
+  LogOut,
+  AlertCircle
 } from "lucide-react";
 import "./ActiveAgreements.css";
 
@@ -82,7 +83,8 @@ const ClientDashboard = () => {
     { name: "Agreement Activity Timeline", icon: <History size={18} />, path: "/agreement-activity-timeline" },
     { name: "Trust Score", icon: <ShieldCheck size={18} />, path: "/trust" },
     { name: "Analytics", icon: <BarChart3 size={18} /> , path: "/agreements/:agreementId/analytics"},
-    { name: "Settings", icon: <Settings size={18} /> }
+    { name: "Settings", icon: <Settings size={18} /> },
+    { name: "Dispute", icon: <AlertCircle size={18} />, path: "/dispute" }
   ];
 
   const acceptedCount = agreements.filter((i) => i.status === "accepted").length;

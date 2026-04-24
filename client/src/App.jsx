@@ -12,6 +12,7 @@ import ActiveAgreements from "./pages/ActiveAgreements";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
 import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
 import Analytics from "./pages/Analytics";
+import Dispute from "./pages/Dispute";
 
 import TrustScore from "./pages/TrustScore";
 
@@ -122,6 +123,15 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
               <Analytics />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/dispute"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <Dispute />
             </PrivateRoute>
           }
         />
