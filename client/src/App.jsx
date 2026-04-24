@@ -9,9 +9,11 @@ import ClientDashboard from "./pages/ClientDashboard";
 import Payment from "./pages/Payment";
 import Templates from "./pages/Templates";
 import ActiveAgreements from "./pages/ActiveAgreements";
+import AgreementHistory from "./pages/AgreementHistory";
 import AgreementConfirmation from "./pages/AgreementConfirmation";
 import AgreementActivityTimeline from "./pages/AgreementActivityTimeline";
-import Analytics from "./pages/Analytics";
+import AnalyticsList from "./pages/AnalyticsList";
+import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import Dispute from "./pages/Dispute";
 import AdminDisputes from "./pages/AdminDisputes";
 import AdminDisputeDetails from "./pages/AdminDisputeDetails";
@@ -94,6 +96,15 @@ function App() {
         />
 
         <Route
+          path="/agreement-history"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
+              <AgreementHistory />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
           path="/agreement-activity-timeline"
           element={
             <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
@@ -121,10 +132,19 @@ function App() {
         />
 
         <Route
-          path= "/agreements/:agreementId/analytics"
+          path="/analytics"
           element={
             <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
-              <Analytics />
+              <AnalyticsList />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/analytics/:userId"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
+              <AnalyticsDashboard />
             </PrivateRoute>
           }
         />

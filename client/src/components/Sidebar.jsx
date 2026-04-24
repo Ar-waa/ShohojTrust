@@ -8,7 +8,8 @@ import {
     Settings,
     History,
     CreditCard,
-    AlertCircle
+    AlertCircle,
+    Archive
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -68,7 +69,10 @@ const Sidebar = () => {
         ...(role === "admin"
             ? [{ name: "Dispute Review", path: "/admin/disputes", icon: <AlertCircle size={18} /> }]
             : [{ name: "Dispute", path: "/dispute", icon: <AlertCircle size={18} /> }]
-        )
+        ),
+        ...(role !== "admin"
+            ? [{ name: "Agreement History", path: "/agreement-history", icon: <Archive size={18} /> }]
+            : [])
     ];
 
     return (

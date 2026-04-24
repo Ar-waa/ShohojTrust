@@ -8,7 +8,9 @@ const {
     previewAgreement,
     getActiveAgreements,
     getAgreementEvents,
-    saveDraft
+    saveDraft,
+    completeAgreement,
+    getCompletedAgreements
 } = require("../controllers/agreementController");
 
 // ==========================
@@ -44,5 +46,15 @@ router.get("/:id/events", protect, getAgreementEvents);
 // ==========================
 router.patch("/:id/status", protect, authorize("client"), updateStatus);
 
+// ==========================
+// MARK AGREEMENT AS COMPLETED
+// BOTH CLIENT + PROVIDER
+// ==========================
+router.put("/:id/complete", protect, completeAgreement);
+
+// ==========================
+// GET COMPLETED AGREEMENTS HISTORY
+// ==========================
+router.get("/history/completed", protect, getCompletedAgreements);
 
 module.exports = router;

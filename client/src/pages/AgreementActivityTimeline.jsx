@@ -11,6 +11,7 @@ const AgreementActivityTimeline = () => {
   const [agreementMeta, setAgreementMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isMarking, setIsMarking] = useState(false);
 
   const userEmail = useMemo(() => {
     const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -54,6 +55,7 @@ const AgreementActivityTimeline = () => {
           title: data.title,
           clientEmail: data.clientEmail,
           providerEmail: data.providerEmail,
+          status: data.status,
         });
 
         setTimeline(Array.isArray(data.timeline) ? data.timeline : []);
@@ -68,6 +70,33 @@ const AgreementActivityTimeline = () => {
     load();
   }, [agreementId, userEmail]);
 
+  const handleMarkCompleted = async () => {
+    if (!window.confirm("Are you sure you want to mark this agreement as completed?")) return;
+    
+    setIsMarking(true);
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiBase}/api/agreements/${agreementId}/complete`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || errData.msg || "Failed to mark as completed");
+      }
+
+      // Reload the page to get the updated status and timeline
+      window.location.reload();
+    } catch (err) {
+      alert(err.message || "Failed to mark as completed");
+    } finally {
+      setIsMarking(false);
+    }
+  };
+
   return (
     <div className="dashboard">
       <Sidebar />
@@ -80,11 +109,23 @@ const AgreementActivityTimeline = () => {
             <div className="timeline-page-title">User Agreement Activity Timeline</div>
 
             <div className="timeline-card">
-              <div className="timeline-card-header">
-                <h2>Agreement Activity Timeline</h2>
-                <p className="agreement-id">
-                  Agreement ID: {agreementMeta?.agreementId || agreementId || "N/A"}
-                </p>
+              <div className="timeline-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h2>Agreement Activity Timeline</h2>
+                  <p className="agreement-id">
+                    Agreement ID: {agreementMeta?.agreementId || agreementId || "N/A"}
+                  </p>
+                </div>
+                {agreementMeta && (agreementMeta.status === "accepted" || agreementMeta.status === "paid") && (
+                  <button 
+                    className="aa-btn aa-btn-accept" 
+                    onClick={handleMarkCompleted}
+                    disabled={isMarking}
+                    style={{ padding: '8px 16px', borderRadius: '4px', border: 'none', backgroundColor: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    {isMarking ? "Processing..." : "Mark as Completed"}
+                  </button>
+                )}
               </div>
               <hr className="timeline-divider" />
 

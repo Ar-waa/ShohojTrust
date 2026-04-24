@@ -157,7 +157,7 @@ const getActiveAgreements = async (req, res) => {
     const requesterRole = req.user?.role;
 
     const agreements = await Agreement.find({
-      status: { $in: ["pending", "accepted", "rejected"] },
+      status: { $in: ["pending", "accepted", "rejected", "paid"] },
     }).sort({ updatedAt: -1 });
 
     if (requesterRole === "admin") {
@@ -236,6 +236,89 @@ const getAgreementEvents = async (req, res) => {
   }
 };
 
+// ==========================
+// COMPLETE AGREEMENT
+// ==========================
+const completeAgreement = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const agreement = await Agreement.findById(id);
+
+    if (!agreement) {
+      return res.status(404).json({ error: "Agreement not found" });
+    }
+
+    if (!["accepted", "paid"].includes(agreement.status)) {
+      return res.status(400).json({
+        error: "Only accepted or paid agreements can be marked as completed",
+      });
+    }
+
+    agreement.status = "completed";
+    await agreement.save();
+
+    const action = await AgreementAction.create({
+      agreementId: id,
+      status: "completed",
+      clientEmail: agreement.clientEmail,
+      providerEmail: agreement.providerEmail,
+    });
+
+    await logEvent({
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        role: req.user.role,
+      },
+      action: "COMPLETE_AGREEMENT",
+      agreementId: agreement._id,
+    });
+
+    res.json({
+      msg: "Agreement marked as completed successfully",
+      agreement,
+      action,
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// ==========================
+// COMPLETED AGREEMENTS HISTORY
+// ==========================
+const getCompletedAgreements = async (req, res) => {
+  try {
+    const { userEmail } = req.query;
+    const requesterRole = req.user?.role;
+
+    const agreements = await Agreement.find({
+      status: "completed",
+    }).sort({ updatedAt: -1 });
+
+    if (requesterRole === "admin") {
+      return res.json(agreements);
+    }
+
+    const normalized = String(userEmail || "").trim().toLowerCase();
+
+    const filtered = normalized
+      ? agreements.filter((a) =>
+          [a.clientEmail, a.providerEmail]
+            .map((e) => String(e || "").trim().toLowerCase())
+            .includes(normalized)
+        )
+      : agreements;
+
+    res.json(filtered);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 module.exports = {
   createAgreement,
   previewAgreement,
@@ -243,4 +326,6 @@ module.exports = {
   updateStatus,
   getActiveAgreements,
   getAgreementEvents,
+  completeAgreement,
+  getCompletedAgreements,
 };
