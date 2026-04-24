@@ -37,11 +37,9 @@ const Sidebar = () => {
         ...(role === "client"
             ? [{ name: "Payment", path: "/payment", icon: <CreditCard size={18} /> }]
             : []),
-        {
-            name: "Templates",
-            path: "/templates",
-            icon: <FileText size={18} />
-        },
+        ...(role !== "admin"
+            ? [{ name: "Templates", path: "/templates", icon: <FileText size={18} /> }]
+            : []),
         {
             name: "Active Agreements",
             path: "/agreements",
@@ -67,11 +65,10 @@ const Sidebar = () => {
             path: "/settings",
             icon: <Settings size={18} />
         },
-        {
-            name: "Dispute",
-            path: "/dispute",
-            icon: <AlertCircle size={18} />
-        }
+        ...(role === "admin"
+            ? [{ name: "Dispute Review", path: "/admin/disputes", icon: <AlertCircle size={18} /> }]
+            : [{ name: "Dispute", path: "/dispute", icon: <AlertCircle size={18} /> }]
+        )
     ];
 
     return (

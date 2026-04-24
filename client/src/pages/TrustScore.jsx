@@ -58,7 +58,8 @@ const TrustScore = () => {
       } else if (user.role === "provider") {
         filtered = allUsers.filter((u) => u.role === "client");
       } else {
-        filtered = allUsers;
+        // Admin sees both clients and providers, but not other admins
+        filtered = allUsers.filter((u) => u.role === "client" || u.role === "provider");
       }
 
       setUsers(filtered);
@@ -87,7 +88,7 @@ const TrustScore = () => {
           <div className="card" style={{ marginTop: "20px" }}>
             <h3>
               {user.role === "admin"
-                ? "All Users"
+                ? "Providers & Clients"
                 : user.role === "client"
                 ? "Providers"
                 : "Clients"}

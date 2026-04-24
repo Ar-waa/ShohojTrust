@@ -6,6 +6,14 @@ const TrustConfig = require("../models/TrustConfig");
 // ==========================
 const getTrustScore = async (req, res) => {
   try {
+    if (req.user.role === "admin" || req.user.id === "static-admin") {
+      return res.json({
+        trustScore: 100, // or 'N/A'
+        email: req.user.email || "admin@gmail.com",
+        role: "admin"
+      });
+    }
+
     const user = await User.findById(req.user.id);
 
     if (!user) {
