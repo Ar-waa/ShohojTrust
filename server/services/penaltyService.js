@@ -7,6 +7,7 @@ exports.handlePenalty = async (agr) => {
     try {
         const now = new Date();
         const deadline = new Date(agr.date);
+        let violationType = null;
 
         if (isNaN(deadline.getTime())) {
         console.log("Invalid deadline for agreement:", agr._id);
@@ -15,7 +16,7 @@ exports.handlePenalty = async (agr) => {
         // ==========================
         // STEP 1: DETERMINE VIOLATION TYPE
         // ==========================
-        let violationType = null;
+
 
         // ==========================
         // CLIENT FAILURE (priority)
@@ -132,7 +133,7 @@ exports.handlePenalty = async (agr) => {
                 email: violationType === "provider"
                     ? agr.providerEmail
                     : agr.clientEmail,
-                role: "system",
+                role: "provider",
             },
             action: "PENALTY_APPLIED",
             agreementId: agr._id,

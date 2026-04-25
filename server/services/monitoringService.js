@@ -11,6 +11,7 @@ exports.monitorDeadlines = async () => {
 
     for (const agr of agreements) {
         const deadline = new Date(agr.date);
+        deadline.setHours(23, 59, 59, 999);
 
         const diffDays = (deadline - now) / (1000 * 60 * 60 * 24);
         await penaltyService.handlePenalty(agr);
@@ -37,7 +38,7 @@ exports.monitorDeadlines = async () => {
         user: {
             id: null,
             email: agr.providerEmail,
-            role: "system"
+            role: "provider"
         },
         action: "DEADLINE_MISSED",
         agreementId: agr._id,
@@ -48,15 +49,6 @@ exports.monitorDeadlines = async () => {
 
     // Apply penalty every interval
     await penaltyService.handlePenalty(agr);
-    await logEvent({
-    user: {
-        id: null,
-        email: violationType === "provider" ? agr.providerEmail : agr.clientEmail,
-        role: "system"
-        },
-        action: "PENALTY_APPLIED",
-        agreementId: agr._id,
-    });
     }
     }
 };

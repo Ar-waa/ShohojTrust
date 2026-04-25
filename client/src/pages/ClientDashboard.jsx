@@ -196,6 +196,7 @@ const ClientDashboard = () => {
                                     ? "accepted"
                                   :item.status === "work_done"
                                     ? "accepted"
+                                    : item.status === "completed" ? "✔"
                                     : item.status === "rejected"
                                       ? "rejected"
                                       : "pending"
@@ -206,6 +207,7 @@ const ClientDashboard = () => {
                                     ? "✔"
                                     : item.status === "work_done"
       ?                               "✔"
+                                      : item.status === "completed" ? "✔"
                                     : item.status === "rejected"
                                       ? "✕"
                                       : "⏳"}
@@ -214,6 +216,7 @@ const ClientDashboard = () => {
                                   ? "Accepted"
                                   : item.status === "work_done"
                                     ? "Work Completed"
+                                    : item.status === "completed" ? "✔"
                                   : item.status === "rejected"
                                     ? "Rejected"
                                     : "Pending"}
