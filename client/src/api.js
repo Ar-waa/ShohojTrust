@@ -9,10 +9,13 @@ const API = axios.create({
     const token = localStorage.getItem("token");
 
     if (token) {
-        req.headers.Authorization = token;
+            req.headers = req.headers || {};
+            req.headers.Authorization = `Bearer ${token}`;
     }
 
     return req;
 });
 
 export default API;
+
+export const getMyReport = () => API.get("/reports/my-report");

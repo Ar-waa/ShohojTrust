@@ -19,6 +19,7 @@ import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import Dispute from "./pages/Dispute";
 import AdminDisputes from "./pages/AdminDisputes";
 import AdminDisputeDetails from "./pages/AdminDisputeDetails";
+import MyReport from "./pages/Reports/MyReport";
 
 import TrustScore from "./pages/TrustScore";
 
@@ -176,6 +177,15 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["client", "provider", "admin"]}>
               <AnalyticsDashboard />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/reports/my-report"
+          element={
+            <PrivateRoute allowedRoles={["client", "provider"]}>
+              <MyReport />
             </PrivateRoute>
           }
         />

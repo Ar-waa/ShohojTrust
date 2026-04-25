@@ -98,6 +98,36 @@ const ProviderDashboard = () => {
         }
     };
 
+    // ==========================
+    // DOWNLOAD PDF FUNCTION
+    // ==========================
+    const handleDownloadPdf = async () => {
+        try {
+            const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const res = await fetch(`${apiBase}/api/reports/my-report/pdf`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`
+                }
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to download PDF");
+            }
+
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "my-behavior-report.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            alert(err.message || "Failed to download PDF");
+        }
+    };
+
     return (
         <div className="dashboard">
 

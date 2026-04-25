@@ -1,0 +1,274 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background: #f9fafb;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #1f2937;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.close-btn:hover {
+  color: #1f2937;
+}
+
+/* Main Score Section */
+.breakdown-main-score {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  padding: 30px 20px;
+  background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.score-circle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.score-value {
+  font-size: 40px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.score-label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 5px;
+}
+
+.score-details p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* Breakdown Section */
+.breakdown-section {
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.breakdown-section h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Score Items */
+.score-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.score-item {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.score-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.context-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #1f2937;
+}
+
+.score-badge {
+  padding: 4px 10px;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.score-bar {
+  width: 100%;
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.score-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.score-item-meta {
+  font-size: 12px;
+  color: #6b7280;
+  display: flex;
+  gap: 10px;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 15px;
+}
+
+.stat-card {
+  background: #f9fafb;
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #1f8f3a;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* Tier Information */
+.tier-explanation {
+  background: #f0fdf4;
+  border: 1px solid #dcfce7;
+}
+
+.tier-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tier-item {
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #1f8f3a;
+  background: white;
+}
+
+.tier-item strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.tier-item p {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.tier-item.high {
+  border-left-color: #1f8f3a;
+}
+
+.tier-item.high strong {
+  color: #1f8f3a;
+}
+
+.tier-item.moderate {
+  border-left-color: #f59e0b;
+}
+
+.tier-item.moderate strong {
+  color: #f59e0b;
+}
+
+.tier-item.low {
+  border-left-color: #ef4444;
+}
+
+.tier-item.low strong {
+  color: #ef4444;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modal-content {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .breakdown-main-score {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

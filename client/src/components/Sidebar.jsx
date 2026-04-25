@@ -61,6 +61,15 @@ const Sidebar = () => {
             path: "/analytics",
             icon: <BarChart3 size={18} />
         },
+        ...(role !== "admin"
+            ? [
+                {
+                    name: "My Report",
+                    path: "/reports/my-report",
+                    icon: <FileText size={18} />
+                }
+            ]
+            : []),
         {
             name: "Settings",
             path: "/settings",
@@ -94,7 +103,12 @@ const Sidebar = () => {
                         <div
                             key={index}
                             className={`menu-item ${isActive ? "active" : ""}`}
-                            onClick={() => navigate(item.path)}
+                            onClick={() => {
+                                if (item.path) {
+                                    navigate(item.path);
+                                }
+                            }}
+                            style={{ cursor: item.path ? "pointer" : "default" }}
                         >
                             {item.icon}
                             <span>{item.name}</span>
