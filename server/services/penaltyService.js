@@ -53,10 +53,25 @@ exports.handlePenalty = async (agr) => {
         const totalDelayDays = (now - deadline) / (1000 * 60 * 60 * 24);
 
         // total intervals that SHOULD exist
-        const totalIntervals = Math.max(
-        0,
-        Math.floor(totalDelayDays / 2)
-        );
+        let totalIntervals = 0;
+
+        // ==========================
+        // PROVIDER → immediate penalty
+        // ==========================
+        if (violationType === "provider") {
+        totalIntervals = totalDelayDays > 0
+            ? Math.max(1, Math.floor(totalDelayDays / 2))
+            : 0;
+        }
+
+        // ==========================
+        // CLIENT → 2-day grace period
+        // ==========================
+        if (violationType === "client") {
+        totalIntervals = totalDelayDays > 2
+            ? Math.floor(totalDelayDays / 2)
+            : 0;
+        }
         console.log("Delay days:", totalDelayDays);
         console.log("Intervals:", totalIntervals);
         // intervals already applied
@@ -91,7 +106,17 @@ exports.handlePenalty = async (agr) => {
         const finalFactor = Math.pow(1 - rate, totalIntervals);
         newAmount = baseAmount * finalFactor;
 
-        penaltyAmount = baseAmount - newAmount; // deducted amount
+        penaltyAmount = baseAmount - newAmount; 
+        
+        await logEvent({
+        user: {
+            id: agr.providerId, 
+            email: agr.providerEmail,
+            role: "provider",
+        },
+        action: "PENALTY_APPLIED",
+        agreementId: agr._id,
+        });// deducted amount
         }
 
         // ==========================
@@ -102,7 +127,17 @@ exports.handlePenalty = async (agr) => {
         const finalFactor = Math.pow(1 + rate, totalIntervals);
         newAmount = baseAmount * finalFactor;
 
-        penaltyAmount = newAmount - baseAmount; // extra charged
+        penaltyAmount = newAmount - baseAmount; 
+        
+        await logEvent({
+        user: {
+            id: agr.clientId,
+            email: agr.clientEmail,
+            role: "client",
+        },
+        action: "PENALTY_APPLIED",
+        agreementId: agr._id,
+        });// extra charged
         }
 
         if (isNaN(newAmount) || isNaN(penaltyAmount)) {
@@ -119,25 +154,6 @@ exports.handlePenalty = async (agr) => {
         agr.adjustedAmount = Math.round(newAmount);
 
         await agr.save();
-
-        // ==========================
-        // STEP 5: UPDATE PAYMENT
-        // ==========================
-
-        // ==========================
-        // STEP 6: LOG EVENT
-        // ==========================
-        await logEvent({
-            user: {
-                id: null,
-                email: violationType === "provider"
-                    ? agr.providerEmail
-                    : agr.clientEmail,
-                role: "provider",
-            },
-            action: "PENALTY_APPLIED",
-            agreementId: agr._id,
-        });
 
         // ==========================
         // REAL-TIME NOTIFICATION
