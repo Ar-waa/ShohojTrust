@@ -64,7 +64,7 @@ const paymentSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer"],
+      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer", "Stripe"],
       required: true
     },
 

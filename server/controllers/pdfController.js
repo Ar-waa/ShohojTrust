@@ -1,5 +1,21 @@
 const axios = require("axios");
 
+const convertHtmlToPdf = async (html) => {
+  const response = await axios.post(
+    "https://api.pdfshift.io/v3/convert/pdf",
+    { source: html },
+    {
+      auth: {
+        username: "api",
+        password: process.env.PDFSHIFT_API_KEY
+      },
+      responseType: "arraybuffer"
+    }
+  );
+
+  return response.data;
+};
+
 const generatePDF = async (req, res) => {
   try {
     const { title, terms, date, amount, penalty } = req.body;
@@ -17,23 +33,12 @@ const generatePDF = async (req, res) => {
       </html>
     `;
 
-    const response = await axios.post(
-      "https://api.pdfshift.io/v3/convert/pdf",
-      { source: html },
-      {
-      auth: {
-      username: "api",
-      password: process.env.PDFSHIFT_API_KEY
-      },
-      responseType: "arraybuffer"
-     }
-
-    );
+    const pdfBuffer = await convertHtmlToPdf(html);
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=agreement.pdf");
 
-    res.send(response.data);
+    res.send(pdfBuffer);
 
   } catch (err) {
   console.log("❌ PDF ERROR FULL:", err.response?.data || err.message);
@@ -46,4 +51,4 @@ const generatePDF = async (req, res) => {
 }
 };
 
-module.exports = { generatePDF };
+module.exports = { generatePDF, convertHtmlToPdf };

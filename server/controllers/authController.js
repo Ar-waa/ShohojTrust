@@ -75,8 +75,10 @@ const authUser = async (req, res) => {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        const isHashedMatch = await bcrypt.compare(password, user.password);
+        const isLegacyPlaintextMatch = user.password === password;
+
+        if (!isHashedMatch && !isLegacyPlaintextMatch) {
             return res.status(400).json({ msg: "Invalid credentials" });
         }
 

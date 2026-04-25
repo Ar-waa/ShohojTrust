@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import PaymentSuccessModal from "../components/PaymentSuccessModal";
@@ -10,6 +10,7 @@ const Payment = () => {
   const [selectedAgreement, setSelectedAgreement] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("bKash");
   const [isProcessing, setIsProcessing] = useState(false);
+  const stripeConfirmStarted = useRef(false);
 
   const [successModal, setSuccessModal] = useState({
     isOpen: false,
@@ -20,6 +21,23 @@ const Payment = () => {
 
   useEffect(() => {
     fetchAgreements();
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get("session_id");
+
+    if (params.get("stripe_cancelled")) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    if (!sessionId || params.get("stripe_success") !== "true" || stripeConfirmStarted.current) {
+      return;
+    }
+
+    stripeConfirmStarted.current = true;
+    confirmStripePayment(sessionId);
   }, []);
 
   const fetchAgreements = async () => {
@@ -55,6 +73,65 @@ const Payment = () => {
     }
   };
 
+  const confirmStripePayment = async (sessionId) => {
+    setIsProcessing(true);
+
+    try {
+      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const res = await fetch(`${apiBase}/api/payments/stripe/confirm`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ sessionId })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.msg || "Stripe payment confirmation failed");
+      }
+
+      setSuccessModal({
+        isOpen: true,
+        transactionId: data.payment.transactionId,
+        amount: data.payment.amount,
+        paymentMethod: data.payment.paymentMethod
+      });
+
+      window.history.replaceState({}, "", window.location.pathname);
+      setSelectedAgreement(null);
+      setPaymentMethod("bKash");
+      fetchAgreements();
+    } catch (err) {
+      console.error("Stripe confirmation error:", err);
+      alert(err.message || "Stripe payment confirmation failed. Please try again.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const startStripeCheckout = async (agreementId) => {
+    const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const res = await fetch(`${apiBase}/api/payments/stripe/create-checkout-session`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      },
+      body: JSON.stringify({ agreementId })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.msg || "Failed to start Stripe checkout");
+    }
+
+    window.location.href = data.url;
+  };
+
   // ✅ FIXED PAYMENT FUNCTION
   const handleConfirmPayment = async () => {
     if (!selectedAgreement) {
@@ -72,6 +149,11 @@ const Payment = () => {
         selectedAgreement?.amount ??
         0
       );
+
+      if (paymentMethod === "Stripe") {
+        await startStripeCheckout(selectedAgreement?._id);
+        return;
+      }
 
       const res = await fetch(`${apiBase}/api/payments/confirm`, {
         method: "POST",
@@ -233,6 +315,7 @@ const Payment = () => {
                         <option value="Nagad">Nagad</option>
                         <option value="Rocket">Rocket</option>
                         <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Stripe">Stripe</option>
                       </select>
                     </div>
 
@@ -252,7 +335,11 @@ const Payment = () => {
                       onClick={handleConfirmPayment}
                       disabled={isProcessing}
                     >
-                      {isProcessing ? "Processing..." : "Confirm payment 🔒"}
+                      {isProcessing
+                        ? "Processing..."
+                        : paymentMethod === "Stripe"
+                          ? "Pay with Stripe"
+                          : "Confirm payment 🔒"}
                     </button>
 
                     <button

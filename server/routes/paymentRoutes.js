@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const {
   confirmPayment,
+  createStripeCheckoutSession,
+  confirmStripeCheckoutSession,
   getPaymentHistory,
   getPaymentByTransactionId,
   getPendingPayments,
@@ -13,6 +15,10 @@ const { protect, authorize } = require("../middleware/authMiddleware");
 // ✅ SPECIFIC ROUTES FIRST (before :param routes)
 // CLIENT: Confirm/process a payment
 router.post("/confirm", protect, authorize("client"), confirmPayment);
+
+// CLIENT: Stripe Checkout payment flow
+router.post("/stripe/create-checkout-session", protect, authorize("client"), createStripeCheckoutSession);
+router.post("/stripe/confirm", protect, authorize("client"), confirmStripeCheckoutSession);
 
 // CLIENT: Get pending payments for this client
 router.get("/pending", protect, authorize("client"), getPendingPayments);

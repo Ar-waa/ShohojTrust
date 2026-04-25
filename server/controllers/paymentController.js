@@ -4,6 +4,148 @@ const User = require("../models/User");
 const AgreementAction = require("../models/AgreementAction");
 const { generateTransactionId } = require("../utils/transactionUtils");
 const { logEvent } = require("../services/eventService");
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "";
+const stripe = require("stripe")(stripeSecretKey);
+
+const isStripeConfigured = () =>
+  stripeSecretKey && stripeSecretKey !== "your_stripe_secret_key";
+
+const getFinalAmount = (agreement) => Number(agreement.adjustedAmount || agreement.amount || 0);
+
+const getClientBaseUrl = () => process.env.CLIENT_URL || "http://localhost:5173";
+
+const getStripeAmount = (amount) => {
+  const multiplier = Number(process.env.STRIPE_AMOUNT_MULTIPLIER || 100);
+  return Math.round(Number(amount) * multiplier);
+};
+
+const assertPayableAgreement = async ({ agreementId, clientEmail }) => {
+  const agreement = await Agreement.findById(agreementId);
+
+  if (!agreement) {
+    const error = new Error("Agreement not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (agreement.clientEmail !== clientEmail) {
+    const error = new Error("You are not authorized to pay this agreement");
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (agreement.status !== "work_done") {
+    const error = new Error("Only completed work (status: work_done) can be paid");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const existingPayment = await Payment.findOne({
+    agreementId,
+    status: "completed"
+  });
+
+  if (existingPayment) {
+    const error = new Error("This agreement has already been paid");
+    error.statusCode = 400;
+    error.payment = existingPayment;
+    throw error;
+  }
+
+  return agreement;
+};
+
+const buildPaymentResponse = (payment) => ({
+  id: payment._id,
+  transactionId: payment.transactionId,
+  amount: payment.amount,
+  currency: payment.currency,
+  paymentMethod: payment.paymentMethod,
+  status: payment.status,
+  paidAt: payment.paidAt,
+  completedAt: payment.completedAt,
+  agreementTitle: payment.agreementTitle,
+  agreementCategory: payment.agreementCategory,
+  agreementDueDate: payment.agreementDueDate,
+  clientEmail: payment.clientEmail,
+  providerEmail: payment.providerEmail
+});
+
+const recordCompletedPayment = async ({
+  req,
+  agreement,
+  agreementId,
+  clientEmail,
+  paymentMethod,
+  transactionId
+}) => {
+  const finalAmount = getFinalAmount(agreement);
+
+  const [clientUser, providerUser] = await Promise.all([
+    User.findOne({ email: clientEmail }),
+    User.findOne({ email: agreement.providerEmail })
+  ]);
+
+  const now = new Date();
+
+  const payment = new Payment({
+    agreementId,
+    agreementTitle: agreement.title || "Untitled Agreement",
+    agreementCategory: agreement.category || "",
+    agreementDueDate: agreement.date || "",
+    clientEmail,
+    clientUserId: clientUser?._id,
+    providerEmail: agreement.providerEmail,
+    providerUserId: providerUser?._id,
+    amount: finalAmount,
+    adjustedAmount: finalAmount,
+    currency: "BDT",
+    paymentMethod,
+    status: "completed",
+    transactionId,
+    completedAt: now,
+    paidAt: now,
+    description: `Payment for agreement: ${agreement.title || "Untitled Agreement"}`,
+    recordedBy: "system",
+    metadata: {
+      ipAddress: req.ip || "",
+      userAgent: req.get("user-agent") || ""
+    }
+  });
+
+  await payment.save();
+
+  agreement.status = "completed";
+  await agreement.save();
+
+  await AgreementAction.create([
+    {
+      agreementId,
+      status: "paid",
+      clientEmail,
+      providerEmail: agreement.providerEmail,
+    },
+    {
+      agreementId,
+      status: "completed",
+      clientEmail,
+      providerEmail: agreement.providerEmail,
+    }
+  ]);
+
+  await updateTrustScores(clientEmail, agreement.providerEmail, finalAmount);
+  await logEvent({
+    user: {
+      id: req.user?.id || null,
+      email: req.user?.email || null,
+      role: req.user?.role || null,
+    },
+    action: "MAKE_PAYMENT",
+    agreementId: agreement._id || null,
+  });
+
+  return payment;
+};
 
 const confirmPayment = async (req, res) => {
   try {
@@ -14,128 +156,144 @@ const confirmPayment = async (req, res) => {
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       return res.status(400).json({ msg: "Amount must be a valid positive number" });
     }
-    
-    const agreement = await Agreement.findById(agreementId);
 
-    if (!agreement) {
-      return res.status(404).json({ msg: "Agreement not found" });
+    if (paymentMethod === "Stripe") {
+      return res.status(400).json({ msg: "Use Stripe Checkout to complete Stripe payments" });
     }
-
-
-    const finalAmount =
-      agreement.adjustedAmount || agreement.amount;
-        // Verify agreement exists and belongs to this client
-
-    if (agreement.clientEmail !== clientEmail) {
-      return res.status(403).json({ msg: "You are not authorized to pay this agreement" });
-    }
-
-    if (agreement.status !== "work_done") {
-      return res.status(400).json({ msg: "Only completed work (status: work_done) can be paid" });
-    }
-
-    // Check if payment already exists for this agreement
-    const existingPayment = await Payment.findOne({
+    const agreement = await assertPayableAgreement({ agreementId, clientEmail });
+    const payment = await recordCompletedPayment({
+      req,
+      agreement,
       agreementId,
-      status: "completed"
-    });
-
-    if (existingPayment) {
-      return res.status(400).json({ msg: "This agreement has already been paid" });
-    }
-
-    const [clientUser, providerUser] = await Promise.all([
-      User.findOne({ email: clientEmail }),
-      User.findOne({ email: agreement.providerEmail })
-    ]);
-
-    // Generate transaction ID
-    const transactionId = generateTransactionId();
-    const now = new Date();
-
-    // Create payment record
-    const payment = new Payment({
-      agreementId,
-      agreementTitle: agreement.title || "Untitled Agreement",
-      agreementCategory: agreement.category || "",
-      agreementDueDate: agreement.date || "",
       clientEmail,
-      clientUserId: clientUser?._id,
-      providerEmail: agreement.providerEmail,
-      providerUserId: providerUser?._id,
-      amount: finalAmount,
-      adjustedAmount: finalAmount,
-      currency: "BDT",
       paymentMethod,
-      status: "completed",
-      transactionId,
-      completedAt: now,
-      paidAt: now,
-      description: `Payment for agreement: ${agreement.title || "Untitled Agreement"}`,
-      recordedBy: "system",
-      metadata: {
-        ipAddress: req.ip || "",
-        userAgent: req.get("user-agent") || ""
-      }
+      transactionId: generateTransactionId()
     });
 
-    await payment.save();
-
-    // Update agreement status straight to "completed"
-    agreement.status = "completed";
-    await agreement.save();
-
-    // Log both events in the timeline simultaneously
-    await AgreementAction.create([
-      {
-        agreementId,
-        status: "paid",
-        clientEmail,
-        providerEmail: agreement.providerEmail,
-      },
-      {
-        agreementId,
-        status: "completed",
-        clientEmail,
-        providerEmail: agreement.providerEmail,
-      }
-    ]);
-
-    // Update trust scores for both client and provider
-    await updateTrustScores(clientEmail, agreement.providerEmail, finalAmount);
-    await logEvent({
-    user: {
-      id: req.user?.id || null,
-      email: req.user?.email || null,
-      role: req.user?.role || null,
-    },
-    action: "MAKE_PAYMENT",
-    agreementId: agreement._id || null,
-  });
     res.status(201).json({
       msg: "Payment confirmed successfully",
-      payment: {
-        id: payment._id,
-        transactionId: payment.transactionId,
-        amount: payment.amount,
-        currency: payment.currency,
-        paymentMethod: payment.paymentMethod,
-        status: payment.status,
-        paidAt: payment.paidAt,
-        completedAt: payment.completedAt,
-        agreementTitle: payment.agreementTitle,
-        agreementCategory: payment.agreementCategory,
-        agreementDueDate: payment.agreementDueDate,
-        clientEmail: payment.clientEmail,
-        providerEmail: payment.providerEmail
-      }
+      payment: buildPaymentResponse(payment)
     });
 
   } catch (err) {
     console.error("CONFIRM PAYMENT ERROR:", err);   // 👈 ADD THIS
-  res.status(500).json({
+  res.status(err.statusCode || 500).json({
     msg: err.message || "Payment processing failed"
   });
+  }
+};
+
+const createStripeCheckoutSession = async (req, res) => {
+  try {
+    if (!isStripeConfigured()) {
+      return res.status(500).json({ msg: "Stripe is not configured on the server" });
+    }
+
+    const { agreementId } = req.body;
+    const clientEmail = req.user.email;
+    const agreement = await assertPayableAgreement({ agreementId, clientEmail });
+    const finalAmount = getFinalAmount(agreement);
+    const clientBaseUrl = getClientBaseUrl();
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      customer_email: clientEmail,
+      line_items: [
+        {
+          price_data: {
+            currency: (process.env.STRIPE_CURRENCY || "bdt").toLowerCase(),
+            product_data: {
+              name: agreement.title || "ShohojTrust Agreement Payment",
+              description: `Payment for agreement ${agreement._id}`
+            },
+            unit_amount: getStripeAmount(finalAmount)
+          },
+          quantity: 1
+        }
+      ],
+      metadata: {
+        agreementId: String(agreement._id),
+        clientEmail,
+        providerEmail: agreement.providerEmail,
+        amount: String(finalAmount)
+      },
+      payment_intent_data: {
+        metadata: {
+          agreementId: String(agreement._id),
+          clientEmail,
+          providerEmail: agreement.providerEmail
+        }
+      },
+      success_url: `${clientBaseUrl}/payment?stripe_success=true&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${clientBaseUrl}/payment?stripe_cancelled=true`
+    });
+
+    res.status(201).json({
+      sessionId: session.id,
+      url: session.url
+    });
+  } catch (err) {
+    console.error("STRIPE CHECKOUT ERROR:", err);
+    res.status(err.statusCode || 500).json({
+      msg: err.message || "Failed to start Stripe checkout"
+    });
+  }
+};
+
+const confirmStripeCheckoutSession = async (req, res) => {
+  try {
+    if (!isStripeConfigured()) {
+      return res.status(500).json({ msg: "Stripe is not configured on the server" });
+    }
+
+    const { sessionId } = req.body;
+
+    if (!sessionId) {
+      return res.status(400).json({ msg: "Stripe session ID is required" });
+    }
+
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+    if (session.payment_status !== "paid") {
+      return res.status(400).json({ msg: "Stripe payment has not been completed" });
+    }
+
+    const agreementId = session.metadata?.agreementId;
+    const clientEmail = req.user.email;
+
+    if (!agreementId || session.metadata?.clientEmail !== clientEmail) {
+      return res.status(403).json({ msg: "Stripe session does not match this user" });
+    }
+
+    const existingPayment = await Payment.findOne({ agreementId, status: "completed" });
+
+    if (existingPayment) {
+      return res.json({
+        msg: "Payment already recorded",
+        payment: buildPaymentResponse(existingPayment)
+      });
+    }
+
+    const agreement = await assertPayableAgreement({ agreementId, clientEmail });
+    const payment = await recordCompletedPayment({
+      req,
+      agreement,
+      agreementId,
+      clientEmail,
+      paymentMethod: "Stripe",
+      transactionId: session.payment_intent || session.id
+    });
+
+    res.status(201).json({
+      msg: "Stripe payment confirmed successfully",
+      payment: buildPaymentResponse(payment)
+    });
+  } catch (err) {
+    console.error("STRIPE CONFIRM ERROR:", err);
+    res.status(err.statusCode || 500).json({
+      msg: err.message || "Failed to confirm Stripe payment"
+    });
   }
 };
 
@@ -317,6 +475,8 @@ const cancelPayment = async (req, res) => {
 
 module.exports = {
   confirmPayment,
+  createStripeCheckoutSession,
+  confirmStripeCheckoutSession,
   getPaymentHistory,
   getPaymentByTransactionId,
   getPendingPayments,

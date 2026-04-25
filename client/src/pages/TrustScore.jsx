@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
+import TrustScoreBreakdownModal from "../components/TrustScoreBreakdownModal";
 
 const API = "http://localhost:5000/api/trust";
 
 const TrustScore = () => {
   const [users, setUsers] = useState([]);
   const [myData, setMyData] = useState(null);
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [breakdownData, setBreakdownData] = useState(null);
+  const [loadingBreakdown, setLoadingBreakdown] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -68,6 +72,32 @@ const TrustScore = () => {
     }
   };
 
+  // ==========================
+  // FETCH TRUST SCORE BREAKDOWN
+  // ==========================
+  const handleTrustScoreBreakdown = async () => {
+    setLoadingBreakdown(true);
+    try {
+      const response = await fetch(`${API}/trust-score-breakdown`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch breakdown");
+
+      const breakdown = await response.json();
+      setBreakdownData(breakdown);
+      setShowBreakdown(true);
+    } catch (err) {
+      console.log("Breakdown fetch error:", err.message);
+      alert("Failed to load Trust Score Breakdown");
+    } finally {
+      setLoadingBreakdown(false);
+    }
+  };
+
   return (
     <div className="dashboard">
       <Sidebar />
@@ -80,7 +110,26 @@ const TrustScore = () => {
 
           {/* MY SCORE */}
           <div className="card">
-            <h3>My Trust Score</h3>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3>My Trust Score</h3>
+              <button 
+                onClick={handleTrustScoreBreakdown}
+                disabled={loadingBreakdown}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: loadingBreakdown ? "#9ca3af" : "#1f8f3a",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "4px",
+                  cursor: loadingBreakdown ? "not-allowed" : "pointer",
+                  fontSize: "14px",
+                  fontWeight: "600",
+                  transition: "background-color 0.2s"
+                }}
+              >
+                {loadingBreakdown ? "Loading..." : "Trust Score Breakdown"}
+              </button>
+            </div>
            <h1 style={{ color: "#1f8f3a", fontWeight: "bold" }}>{myData?.trustScore || 0}</h1>            <p>{myData?.email}</p>
           </div>
 
@@ -123,6 +172,14 @@ const TrustScore = () => {
 
         </div>
       </div>
+
+      {/* Trust Score Breakdown Modal */}
+      <TrustScoreBreakdownModal 
+        isOpen={showBreakdown}
+        onClose={() => setShowBreakdown(false)}
+        breakdown={breakdownData}
+      />
+
     </div>
   );
 };

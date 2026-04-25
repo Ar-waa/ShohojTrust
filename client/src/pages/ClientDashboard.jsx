@@ -84,7 +84,8 @@ const ClientDashboard = () => {
     { name: "Trust Score", icon: <ShieldCheck size={18} />, path: "/trust" },
     { name: "Analytics", icon: <BarChart3 size={18} /> , path: "/agreements/:agreementId/analytics"},
     { name: "Settings", icon: <Settings size={18} /> },
-    { name: "Dispute", icon: <AlertCircle size={18} />, path: "/dispute" }
+    { name: "Dispute", icon: <AlertCircle size={18} />, path: "/dispute" },
+    { name: "My Report", icon: <FileText size={18} />, path: "/reports/my-report" }
   ];
 
   const acceptedCount = agreements.filter((i) => i.status === "accepted").length;
@@ -101,17 +102,23 @@ const ClientDashboard = () => {
         <h2 className="logo">ShohojTrust</h2>
 
         <div className="menu">
-          {menu.map((item, index) => (
-            <div
-              key={index}
-              className={`menu-item ${item.path && location.pathname === item.path ? "active" : ""}`}
-              onClick={() => item.path && navigate(item.path)}
-              style={{ cursor: item.path ? "pointer" : "default" }}
-            >
-              {item.icon}
-              <span>{item.name}</span>
-            </div>
-          ))}
+          {menu.map((item, index) => {
+            return (
+              <div
+                key={index}
+                className={`menu-item ${item.path && location.pathname === item.path ? "active" : ""}`}
+                onClick={() => {
+                  if (item.path) {
+                    navigate(item.path);
+                  }
+                }}
+                style={{ cursor: item.path ? "pointer" : "default" }}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* ==========================
