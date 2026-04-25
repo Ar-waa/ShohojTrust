@@ -22,6 +22,7 @@
         "MAKE_PAYMENT",
         "FOLLOW_TERMS",
         "MARK_SERVICE_COMPLETED",
+        "DISPUTE_RESOLVED",
     ];
 
     const negative = [
@@ -31,6 +32,8 @@
         "DELAY_SERVICE",
         "NO_RESPONSE",
         "OVERCHARGE",
+        "DEADLINE_MISSED",
+        "PENALTY_APPLIED",
     ];
 
     const dispute = [
@@ -40,9 +43,16 @@
         "FAIL_SERVICE",
     ];
 
+    const penaltyActions = [
+    "PENALTY_APPLIED",
+    "DEADLINE_MISSED",
+    "DEADLINE_APPROACHING"
+    ];
+
     if (positive.includes(action)) return "positive";
     if (negative.includes(action)) return "negative";
     if (dispute.includes(action)) return "dispute";
+    if (penaltyActions.includes(action)) return "negative";
 
     return "neutral";
 }

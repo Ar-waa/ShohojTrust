@@ -174,7 +174,22 @@ const getActiveAgreements = async (req, res) => {
         )
       : agreements;
 
-    res.json(filtered);
+    const Payment = require("../models/Payment");
+
+    const updatedAgreements = await Promise.all(
+      filtered.map(async (agr) => {
+        const payment = await Payment.findOne({
+          agreementId: agr._id
+        });
+
+        return {
+          ...agr._doc,
+          adjustedAmount: Number(agr.adjustedAmount || agr.amount)
+        };
+      })
+    );
+
+res.json(updatedAgreements);
 
   } catch (err) {
     res.status(500).json({ error: err.message });

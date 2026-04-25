@@ -31,7 +31,7 @@ async function logEvent({ user, action, agreementId }) {
         const userId = user._id || user.id;
 
         if (userId) {
-          await calculateTrustScore(userId);
+            await calculateTrustScore(userId);
         }
 
         // ==========================

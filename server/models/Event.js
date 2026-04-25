@@ -30,6 +30,11 @@ const eventSchema = new mongoose.Schema(
 
         overridden: { type: Boolean, default: false },
         overrideReason: String,
+
+        penaltyAmount: Number,
+        penaltyIntervals: Number,
+        violationType: String,
+        deadlineStatus: String
     },
     { timestamps: true }
 );

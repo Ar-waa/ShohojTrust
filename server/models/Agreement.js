@@ -28,13 +28,50 @@ const agreementSchema = new mongoose.Schema(
     amount: String,
     penalty: String,
 
-    // ✅ IMPORTANT STATUS FIELD
     status: {
       type: String,
       enum: ["pending", "accepted", "rejected", "paid", "cancelled", "completed", "work_done"],
       default: "pending",
     },
+
+      deadlineDate: {
+    type: Date
   },
+  penaltyPercent: {
+    type: Number,
+    default: 0
+  },
+  lastPenaltyAppliedAt: {
+    type: Date
+  },
+  violationType: {
+    type: String,
+    enum: ["provider", "client", null],
+    default: null
+  },
+  penaltyAccumulated: {
+    type: Number,
+    default: 0
+  },
+  deadlineMissedNotified: {
+    type: Boolean,
+    default: false
+  },
+  penaltyAccumulatedIntervals: {
+    type: Number,
+    default: 0
+  }, 
+  approachingNotified: {
+  type: Boolean,
+  default: false
+  },
+      adjustedAmount: {
+  type: Number,
+  default: null
+  }
+  
+  },
+  
   { timestamps: true }
 );
 

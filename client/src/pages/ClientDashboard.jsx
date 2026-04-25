@@ -194,6 +194,8 @@ const ClientDashboard = () => {
                                 className={`aa-badge ${
                                   item.status === "accepted"
                                     ? "accepted"
+                                  :item.status === "work_done"
+                                    ? "accepted"
                                     : item.status === "rejected"
                                       ? "rejected"
                                       : "pending"
@@ -202,12 +204,16 @@ const ClientDashboard = () => {
                                 <span className="aa-badge-icon">
                                   {item.status === "accepted"
                                     ? "✔"
+                                    : item.status === "work_done"
+      ?                               "✔"
                                     : item.status === "rejected"
                                       ? "✕"
                                       : "⏳"}
                                 </span>
                                 {item.status === "accepted"
                                   ? "Accepted"
+                                  : item.status === "work_done"
+                                    ? "Work Completed"
                                   : item.status === "rejected"
                                     ? "Rejected"
                                     : "Pending"}

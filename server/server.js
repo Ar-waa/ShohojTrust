@@ -3,7 +3,9 @@ const cors = require("cors");
 const path = require("path");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-
+const { startDeadlineJob } = require("./jobs/deadlineCron");
+const http = require("http");
+const { Server } = require("socket.io");
 
 dotenv.config();
 console.log("PDFSHIFT KEY:", process.env.PDFSHIFT_API_KEY); // 👈 ADD HERE
@@ -25,7 +27,7 @@ app.use("/api/analytics", require("./routes/analyticsRoutes"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.get("/test", (req, res) => {
-  res.send("Server is working");
+    res.send("Server is working");
 });
 
 // Global Error Handler
@@ -36,17 +38,62 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
+let io; 
+
 const startServer = async () => {
     try {
         await connectDB();
-        const server = app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        const { sendEmail } = require("./services/emailService");
+
+        // await sendEmail({
+        // to: "ahsanarwa@gmail.com",
+        // subject: "Startup Test",
+        // htmlContent: "<h1>Server email working</h1>"
+        // });
+
+        const server = http.createServer(app);
+
+        // ==========================
+        // SOCKET.IO INIT (CORRECT)
+        // ==========================
+        io = new Server(server, {
+            cors: {
+                origin: "http://localhost:5173",
+            },
         });
-        
-        // Prevent process from exiting
-        server.on('error', (err) => {
+
+        // ==========================
+        // SOCKET CONNECTION HANDLER
+        // ==========================
+        io.on("connection", (socket) => {
+            console.log("Client connected:", socket.id);
+
+            socket.on("join", (userEmail) => {
+                if (userEmail) {
+                    socket.join(userEmail);
+                    console.log(`Socket ${socket.id} joined room ${userEmail}`);
+                }
+            });
+
+            socket.on("disconnect", () => {
+                console.log("Client disconnected:", socket.id);
+            });
+        });
+
+        // ✅ EXPORT IO HERE (IMPORTANT)
+        module.exports.io = io;
+
+        server.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+
+            // start cron AFTER server ready
+            startDeadlineJob();
+        });
+
+        server.on("error", (err) => {
             console.error("Server error:", err.message);
         });
+
     } catch (err) {
         console.error("Failed to connect to MongoDB.", err.message);
         process.exit(1);

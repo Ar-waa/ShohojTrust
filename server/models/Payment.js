@@ -107,7 +107,12 @@ const paymentSchema = new mongoose.Schema(
 
     completedAt: {
       type: Date
-    }
+    },
+
+  penaltyAccumulated: {
+    type: Number,
+    default: 0
+  },
   },
   { timestamps: true }
 );

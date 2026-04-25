@@ -3,27 +3,28 @@ const Agreement = require("../models/Agreement");
 const User = require("../models/User");
 const AgreementAction = require("../models/AgreementAction");
 const { generateTransactionId } = require("../utils/transactionUtils");
+const { logEvent } = require("../services/eventService");
 
-// ✅ CONFIRM PAYMENT
 const confirmPayment = async (req, res) => {
   try {
     const { agreementId, paymentMethod, amount } = req.body;
     const clientEmail = req.user.email;
 
-    if (!agreementId || !paymentMethod || !amount) {
-      return res.status(400).json({ msg: "Missing required fields" });
-    }
-
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       return res.status(400).json({ msg: "Amount must be a valid positive number" });
     }
-
-    // Verify agreement exists and belongs to this client
+    
     const agreement = await Agreement.findById(agreementId);
+
     if (!agreement) {
       return res.status(404).json({ msg: "Agreement not found" });
     }
+
+
+    const finalAmount =
+      agreement.adjustedAmount || agreement.amount;
+        // Verify agreement exists and belongs to this client
 
     if (agreement.clientEmail !== clientEmail) {
       return res.status(403).json({ msg: "You are not authorized to pay this agreement" });
@@ -62,7 +63,8 @@ const confirmPayment = async (req, res) => {
       clientUserId: clientUser?._id,
       providerEmail: agreement.providerEmail,
       providerUserId: providerUser?._id,
-      amount: parsedAmount,
+      amount: finalAmount,
+      adjustedAmount: finalAmount,
       currency: "BDT",
       paymentMethod,
       status: "completed",
@@ -100,8 +102,16 @@ const confirmPayment = async (req, res) => {
     ]);
 
     // Update trust scores for both client and provider
-    await updateTrustScores(clientEmail, agreement.providerEmail, parsedAmount);
-
+    await updateTrustScores(clientEmail, agreement.providerEmail, finalAmount);
+    await logEvent({
+    user: {
+      id: req.user?.id || null,
+      email: req.user?.email || null,
+      role: req.user?.role || null,
+    },
+    action: "MAKE_PAYMENT",
+    agreementId: agreement._id || null,
+  });
     res.status(201).json({
       msg: "Payment confirmed successfully",
       payment: {
@@ -122,12 +132,13 @@ const confirmPayment = async (req, res) => {
     });
 
   } catch (err) {
-    console.error("PAYMENT ERROR:", err);
-    res.status(500).json({ msg: "Payment processing failed", error: err.message });
+    console.error("CONFIRM PAYMENT ERROR:", err);   // 👈 ADD THIS
+  res.status(500).json({
+    msg: err.message || "Payment processing failed"
+  });
   }
 };
 
-// ✅ GET PAYMENT HISTORY
 const getPaymentHistory = async (req, res) => {
   try {
     const userEmail = req.user.email;
@@ -153,7 +164,6 @@ const getPaymentHistory = async (req, res) => {
   }
 };
 
-// ✅ GET PAYMENT BY TRANSACTION ID
 const getPaymentByTransactionId = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -178,7 +188,6 @@ const getPaymentByTransactionId = async (req, res) => {
   }
 };
 
-// ✅ GET CLIENT PENDING PAYMENTS
 const getPendingPayments = async (req, res) => {
   try {
     const clientEmail = req.user.email;
@@ -215,7 +224,6 @@ const getPendingPayments = async (req, res) => {
   }
 };
 
-// ✅ GET PROVIDER EARNINGS
 const getProviderEarnings = async (req, res) => {
   try {
     const providerEmail = req.user.email;
@@ -227,7 +235,7 @@ const getProviderEarnings = async (req, res) => {
       .populate("agreementId", "title category")
       .sort({ completedAt: -1 });
 
-    const totalEarnings = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalEarnings = payments.reduce((sum, p) => sum + (p.adjustedAmount || p.amount),0);
 
     res.json({
       totalEarnings,
@@ -241,10 +249,9 @@ const getProviderEarnings = async (req, res) => {
   }
 };
 
-// ✅ HELPER: UPDATE TRUST SCORES
-const updateTrustScores = async (clientEmail, providerEmail, paymentAmount) => {
+const updateTrustScores = async (clientEmail, providerEmail, finalAmount) => {
   try {
-    const trustIncrement = Math.min(5, Math.floor(paymentAmount / 100)); // 1 point per 100 BDT (max 5)
+    const trustIncrement = Math.min(5, Math.floor(finalAmount / 100)); // 1 point per 100 BDT (max 5)
 
     // Update client trust score (paying on time)
     await User.findOneAndUpdate(
@@ -289,6 +296,16 @@ const cancelPayment = async (req, res) => {
 
     payment.status = "failed";
     await payment.save();
+    await logEvent({
+    user: {
+      id: req.user?.id || null,
+      email: req.user?.email || null,
+      role: req.user?.role || null,
+    },
+    action: "FAIL_PAYMENT",
+    agreementId: payment.agreementId || null,
+  });
+
 
     res.json({ msg: "Payment cancelled successfully", payment });
 

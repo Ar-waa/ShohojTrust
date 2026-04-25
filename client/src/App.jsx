@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { io } from "socket.io-client";
+import { useEffect } from "react";
 
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -41,6 +43,35 @@ const PrivateRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
+      useEffect(() => {
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      if (user?.email) {
+        socket.emit("join", user.email);
+        console.log("Joined socket room:", user.email);
+      }
+
+      socket.on("deadline_approaching", (data) => {
+        console.log("⏳ Deadline approaching:", data);
+        alert(`⏳ Deadline approaching: ${data.title}`);
+      });
+
+      socket.on("deadline_missed", (data) => {
+        console.log("⚠️ Deadline missed:", data);
+        alert(`⚠️ Deadline missed: ${data.title}`);
+      });
+
+      socket.on("penalty_applied", (data) => {
+        console.log("💸 Penalty applied:", data);
+        alert(`💸 Penalty applied: ৳${data.penaltyAmount}`);
+      });
+
+      return () => {
+        socket.off("deadline_approaching");
+        socket.off("deadline_missed");
+        socket.off("penalty_applied");
+      };
+    }, []);
   return (
     <Router>
       <Routes>
@@ -185,3 +216,4 @@ function App() {
 }
 
 export default App;
+export const socket = io("http://localhost:5000");

@@ -1,6 +1,7 @@
 const Dispute = require("../models/Dispute");
 const Agreement = require("../models/Agreement");
 const User = require("../models/User");
+const { logEvent } = require("../services/eventService");
 
 // @desc    Create a new dispute
 // @route   POST /api/disputes
@@ -25,6 +26,17 @@ const createDispute = async (req, res) => {
         });
 
         await dispute.save();
+
+        await logEvent({
+        user: {
+            id: req.user?.id || null,
+            email: req.user?.email || null,
+            role: req.user?.role || null,
+        },
+        action: "RAISE_DISPUTE",
+        agreementId: agreementId || null,
+        });
+
 
         res.status(201).json({
             success: true,
@@ -91,6 +103,16 @@ const resolveDispute = async (req, res) => {
 
         // The user specified: after clicking resolve button it will remove the dispute from database
         await Dispute.findByIdAndDelete(req.params.id);
+        
+        await logEvent({
+        user: {
+            id: req.user?.id || null,
+            email: req.user?.email || null,
+            role: req.user?.role || null,
+        },
+        action: "BREAK_TERMS",
+        agreementId: dispute.agreementId || null,
+        });
 
         res.status(200).json({
             success: true,
@@ -141,6 +163,15 @@ const cancelAgreementAndPenalize = async (req, res) => {
 
         // Remove the dispute
         await Dispute.findByIdAndDelete(req.params.id);
+        await logEvent({
+        user: {
+            id: req.user?.id || null,
+            email: req.user?.email || null,
+            role: req.user?.role || null,
+        },
+        action: "REJECT_AGREEMENT",
+        agreementId: agreement._id || null,
+        });
 
         res.status(200).json({
             success: true,

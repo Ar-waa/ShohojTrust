@@ -34,6 +34,26 @@ exports.getUserAnalytics = async (req, res) => {
             $or: [{ providerEmail: email }, { clientEmail: email }]
         });
 
+        const monitoring = agreements.map((a) => ({
+        title: a.title,
+        status:
+            a.violationType ? "violated" :
+            a.status === "completed" ? "completed" :
+            "active",
+        deadline: a.date,
+        providerCompleted: a.status === "work_done",
+        clientPaid: a.status === "completed",
+        penalty: a.penaltyAccumulated || 0,
+        totalAmount:Number( a.amount
+        ? (
+            a.violationType === "provider"
+                ? Number(a.amount - (a.penaltyAccumulated || 0))
+                : Number(a.amount + (a.penaltyAccumulated || 0))
+            )
+        : 0),
+        trustImpact: -5
+        }));
+
         const totalAgreements = agreements.length;
         
         let completedCount = 0;
@@ -139,7 +159,8 @@ exports.getUserAnalytics = async (req, res) => {
                     cancellationTrends: cancellationChartData,
                     behaviorData,
                     completionChartData
-                }
+                },
+                monitoring
             }
         });
 
