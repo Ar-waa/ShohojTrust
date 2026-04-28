@@ -1,34 +1,21 @@
 const mongoose = require("mongoose");
 
-const connectWithUri = async (uri, label) => {
+const connectDB = async () => {
+    const uri = process.env.MONGO_URI;
+
     if (!uri) {
-        throw new Error(`Missing MongoDB URI for ${label}`);
+        console.error("Missing MongoDB URI in environment variables");
+        process.exit(1);
     }
 
-    console.log(`Connecting to MongoDB (${label})...`);
-    await mongoose.connect(uri);
-    console.log(`MongoDB connected (${label})`);
-};
-
-const isSrvLookupError = (err) => {
-    return err && (err.code === "ECONNREFUSED" || err.code === "ENOTFOUND") && err.syscall === "querySrv";
-};
-
-const connectDB = async () => {
-    const primaryUri = process.env.MONGO_URI;
-    const fallbackUri = process.env.MONGO_URI_FALLBACK || "mongodb://127.0.0.1:27017/shohojtrust";
-    //console.log("Connected DB:", mongoose.connection.name);
-
     try {
-        await connectWithUri(primaryUri, "primary URI");
+        console.log(`Connecting to MongoDB...`);
+        await mongoose.connect(uri);
+        console.log(`MongoDB connected to Cloud Database`);
     } catch (err) {
-        if (isSrvLookupError(err) && fallbackUri !== primaryUri) {
-            console.warn("Primary MongoDB SRV lookup failed. Trying fallback URI...");
-            await connectWithUri(fallbackUri, "fallback URI");
-            return;
-        }
-
-        throw err;
+        console.error("MongoDB connection failed:");
+        console.error(err);
+        process.exit(1);
     }
 };
 
