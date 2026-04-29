@@ -25,8 +25,8 @@ const ClientDashboard = () => {
 
       const apiBase = import.meta.env.VITE_API_URL;
       const endpoint = userEmail
-        ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
-        : `${apiBase}/api/agreements/active`;
+        ? `${apiBase}/agreements/active?userEmail=${userEmail}`
+        : `${apiBase}/agreements/active`;
 
       const res = await fetch(endpoint, {
         headers: {
