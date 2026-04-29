@@ -59,7 +59,11 @@ const startServer = async () => {
         // ==========================
         io = new Server(server, {
             cors: {
-                origin: "https://shohojtrust.onrender.com",
+                origin: [
+    "https://shohojtrust.onrender.com",
+    "https://shohojtrust-1.onrender.com"
+    ],
+    credentials: true
             },
         });
 
