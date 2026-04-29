@@ -39,7 +39,7 @@ const AgreementActivityTimeline = () => {
     const load = async () => {
       try {
         setError("");
-        const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const apiBase = import.meta.env.VITE_API_URL;
         const query = userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : "";
         const res = await fetch(`${apiBase}/api/agreements/${agreementId}/events${query}`, {
           headers: {
@@ -78,7 +78,7 @@ const AgreementActivityTimeline = () => {
     
     setIsMarking(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBase = import.meta.env.VITE_API_URL;
       const res = await fetch(`${apiBase}/api/agreements/${agreementId}/complete`, {
         method: "PUT",
         headers: {

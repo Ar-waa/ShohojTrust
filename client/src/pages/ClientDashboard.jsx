@@ -23,7 +23,7 @@ const ClientDashboard = () => {
       const user = JSON.parse(localStorage.getItem("user") || "null");
       const userEmail = user?.email ? encodeURIComponent(user.email) : "";
 
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBase = import.meta.env.VITE_API_URL;
       const endpoint = userEmail
         ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
         : `${apiBase}/api/agreements/active`;

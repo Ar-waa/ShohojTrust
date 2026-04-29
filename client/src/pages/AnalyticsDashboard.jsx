@@ -47,7 +47,7 @@ const AnalyticsDashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const response = await axios.get(`http://localhost:5000/api/analytics/${userId}`);
+      const response = await axios.get(`http://https://shohojtrust.onrender.com//api/analytics/${userId}`);
       if (response.data.success) {
         setData(response.data.data);
       } else {

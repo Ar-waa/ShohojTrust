@@ -12,7 +12,7 @@ export default function AgreementCard({ agreement, onUpdate }) {
       setLoading(true);
 
       const res = await axios.patch(
-        `http://localhost:5000/api/agreements/${agreement._id}/status`,
+        `http://https://shohojtrust.onrender.com//api/agreements/${agreement._id}/status`,
         { status: newStatus }
       );
 

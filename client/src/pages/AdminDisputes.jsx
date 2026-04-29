@@ -16,7 +16,7 @@ const AdminDisputes = () => {
     const fetchDisputes = async () => {
         try {
             setLoading(true);
-            const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const apiBase = import.meta.env.VITE_API_URL;
             const res = await fetch(`${apiBase}/api/disputes`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`

@@ -45,7 +45,7 @@ const Payment = () => {
       setLoading(true);
       const user = JSON.parse(localStorage.getItem("user") || "null");
       const userEmail = user?.email ? encodeURIComponent(user.email) : "";
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBase = import.meta.env.VITE_API_URL;
 
       const endpoint = userEmail
         ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
@@ -77,7 +77,7 @@ const Payment = () => {
     setIsProcessing(true);
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBase = import.meta.env.VITE_API_URL;
       const res = await fetch(`${apiBase}/api/payments/stripe/confirm`, {
         method: "POST",
         headers: {
@@ -113,7 +113,7 @@ const Payment = () => {
   };
 
   const startStripeCheckout = async (agreementId) => {
-    const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+    const apiBase = import.meta.env.VITE_API_URL;
     const res = await fetch(`${apiBase}/api/payments/stripe/create-checkout-session`, {
       method: "POST",
       headers: {
@@ -142,7 +142,7 @@ const Payment = () => {
     setIsProcessing(true);
 
     try {
-      const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const apiBase = import.meta.env.VITE_API_URL;
 
       const finalAmount = Number(
         selectedAgreement?.adjustedAmount ??

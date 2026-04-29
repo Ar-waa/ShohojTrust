@@ -26,7 +26,7 @@ const ActiveAgreements = () => {
                 setLoading(true);
                 setError("");
 
-                const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+                const apiBase = import.meta.env.VITE_API_URL;
                 const user = JSON.parse(localStorage.getItem("user") || "null");
                 const userEmail = user?.email ? encodeURIComponent(user.email) : "";
                 const endpoint = userEmail
