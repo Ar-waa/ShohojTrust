@@ -31,7 +31,7 @@ const AgreementConfirmation = () => {
   // ==========================
 const downloadPDF = async () => {
   try {
-    const res = await fetch("http://https://shohojtrust.onrender.com//api/pdf/generate", {
+    const res = await fetch("https://shohojtrust.onrender.com/api/pdf/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -72,7 +72,7 @@ const downloadPDF = async () => {
       setLoading(true);
 
       const res = await fetch(
-        `http://https://shohojtrust.onrender.com//api/agreements/${agreement._id}/status`,
+        `https://shohojtrust.onrender.com/api/agreements/${agreement._id}/status`,
         {
           method: "PATCH",
           headers: {

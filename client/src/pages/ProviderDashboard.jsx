@@ -36,7 +36,7 @@ const ProviderDashboard = () => {
     // ==========================
     const saveAgreement = async () => {
     try {
-    const res = await fetch("http://https://shohojtrust.onrender.com//api/agreements/draft", {
+    const res = await fetch("https://shohojtrust.onrender.com/api/agreements/draft", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -77,7 +77,7 @@ const ProviderDashboard = () => {
     // ⭐ NEW BACKEND FUNCTION (ONLY ADDITION)
     const handlePreview = async () => {
         try {
-            const res = await fetch("http://https://shohojtrust.onrender.com//api/agreements/preview", {
+            const res = await fetch("https://shohojtrust.onrender.com//api/agreements/preview", {
                 //const res = await fetch(`${import.meta.env.VITE_API_URL}/api/agreements/preview`, {//
                 method: "POST",
                 headers: {

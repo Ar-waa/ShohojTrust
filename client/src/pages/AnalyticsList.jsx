@@ -13,7 +13,7 @@ const AnalyticsList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://https://shohojtrust.onrender.com//api/analytics/users");
+        const response = await axios.get("https://shohojtrust.onrender.com/api/analytics/users");
         if (response.data.success) {
           setUsers(response.data.data);
         } else {

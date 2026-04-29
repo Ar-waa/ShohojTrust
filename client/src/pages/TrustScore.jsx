@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import TrustScoreBreakdownModal from "../components/TrustScoreBreakdownModal";
 
-const API = "http://https://shohojtrust.onrender.com//api/trust";
+const API = "https://shohojtrust.onrender.com/api/trust";
 
 const TrustScore = () => {
   const [users, setUsers] = useState([]);
