@@ -78,8 +78,8 @@ const AgreementActivityTimeline = () => {
     
     setIsMarking(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${apiBase}/agreements/${agreementId}/complete`, {
+      const apiBase = import.meta.env.VITE_API_URL || "";
+      const res = await fetch(`${apiBase}/api/agreements/${agreementId}/complete`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token") || ""}`,

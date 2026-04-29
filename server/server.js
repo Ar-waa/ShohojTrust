@@ -34,6 +34,12 @@ app.use("/api/reports", require("./routes/reportRoutes"));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+app.use(express.static(path.join(__dirname, "../client/dist")));
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
+
 app.get("/test", (req, res) => {
     res.send("Server is working");
 });
