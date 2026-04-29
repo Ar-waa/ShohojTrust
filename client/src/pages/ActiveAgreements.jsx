@@ -30,8 +30,8 @@ const ActiveAgreements = () => {
                 const user = JSON.parse(localStorage.getItem("user") || "null");
                 const userEmail = user?.email ? encodeURIComponent(user.email) : "";
                 const endpoint = userEmail
-                    ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
-                    : `${apiBase}/api/agreements/active`;
+                    ? `${apiBase}/agreements/active?userEmail=${userEmail}`
+                    : `${apiBase}/agreements/active`;
 
                 const res = await fetch(endpoint, {
                     headers: {
