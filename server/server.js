@@ -11,7 +11,14 @@ dotenv.config();
 console.log("PDFSHIFT KEY:", process.env.PDFSHIFT_API_KEY); // 👈 ADD HERE
 const app = express();
 
-app.use(cors());
+app.use(cors({
+    origin: [
+        "https://shohojtrust.onrender.com",
+        "https://shohojtrust-1.onrender.com"
+    ],
+    credentials: true
+}));
+
 app.use(express.json());
 
 // routes
@@ -58,14 +65,16 @@ const startServer = async () => {
         // SOCKET.IO INIT (CORRECT)
         // ==========================
         io = new Server(server, {
-            cors: {
-                origin: [
-    "https://shohojtrust.onrender.com",
-    "https://shohojtrust-1.onrender.com"
-    ],
-    credentials: true
-            },
-        });
+        cors: {
+            origin: [
+                "https://shohojtrust.onrender.com",
+                "https://shohojtrust-1.onrender.com"
+            ],
+            methods: ["GET", "POST"],
+            credentials: true
+        },
+});
+
 
         // ==========================
         // SOCKET CONNECTION HANDLER
