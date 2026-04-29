@@ -1,16 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  LayoutDashboard,
-  FileText,
-  History,
-  ShieldCheck,
-  BarChart3,
-  CreditCard,
-  Settings,
-  LogOut,
-  AlertCircle
-} from "lucide-react";
+import Sidebar from "../components/Sidebar";
+import Topbar from "../components/Topbar";
 import "./ActiveAgreements.css";
 
 const ClientDashboard = () => {
@@ -63,84 +54,15 @@ const ClientDashboard = () => {
     navigate("/agreement-confirmation");
   };
 
-  // ==========================
-  // LOGOUT FUNCTION ⭐ NEW
-  // ==========================
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    navigate("/");
-  };
-
-  // ==========================
-  // SIDEBAR ITEMS
-  // ==========================
-  const menu = [
-    { name: "Dashboard", icon: <LayoutDashboard size={18} />, path: "/client-dashboard" },
-    { name: "Payment", icon: <CreditCard size={18} />, path: "/payment" },
-    { name: "Active Agreements", icon: <FileText size={18} />, path: "/agreements" },
-    { name: "Agreement Activity Timeline", icon: <History size={18} />, path: "/agreement-activity-timeline" },
-    { name: "Trust Score", icon: <ShieldCheck size={18} />, path: "/trust" },
-    { name: "Analytics", icon: <BarChart3 size={18} /> , path: "/agreements/:agreementId/analytics"},
-    { name: "Settings", icon: <Settings size={18} /> },
-    { name: "Dispute", icon: <AlertCircle size={18} />, path: "/dispute" },
-    { name: "My Report", icon: <FileText size={18} />, path: "/reports/my-report" }
-  ];
-
   const acceptedCount = agreements.filter((i) => i.status === "accepted").length;
   const rejectedCount = agreements.filter((i) => i.status === "rejected").length;
   const pendingCount = agreements.filter((i) => !i.status || i.status === "pending").length;
 
   return (
     <div className="dashboard">
-
-      {/* ==========================
-          SIDEBAR
-      ========================== */}
-      <div className="sidebar">
-        <h2 className="logo">ShohojTrust</h2>
-
-        <div className="menu">
-          {menu.map((item, index) => {
-            return (
-              <div
-                key={index}
-                className={`menu-item ${item.path && location.pathname === item.path ? "active" : ""}`}
-                onClick={() => {
-                  if (item.path) {
-                    navigate(item.path);
-                  }
-                }}
-                style={{ cursor: item.path ? "pointer" : "default" }}
-              >
-                {item.icon}
-                <span>{item.name}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* ==========================
-            LOGOUT BUTTON ⭐ NEW
-        ========================== */}
-        <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-          <div
-            className="menu-item"
-            onClick={handleLogout}
-            style={{ color: "#ef4444", cursor: "pointer" }}
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ==========================
-          MAIN CONTENT
-      ========================== */}
+      <Sidebar />
       <div className="main">
-
+        <Topbar />
         <div className="content">
 
           <div className="page-header">

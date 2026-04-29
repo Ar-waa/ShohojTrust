@@ -28,7 +28,7 @@ const Admin = () => {
       localStorage.setItem("user", JSON.stringify(data.user));
 
       alert(data.msg || "Admin login successful");
-      navigate("/templates");
+      navigate("/admin-dashboard");
       return;
     } catch (err) {
       setError(err.response?.data?.msg || "Invalid admin credentials");

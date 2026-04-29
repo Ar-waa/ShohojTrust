@@ -13,7 +13,7 @@ const createDispute = async (req, res) => {
         // Extract file paths from multer
         let evidenceFiles = [];
         if (req.files && req.files.length > 0) {
-            evidenceFiles = req.files.map(file => `/uploads/${file.filename}`);
+            evidenceFiles = req.files.map(file => file.path); // Cloudinary URL is in file.path
         }
 
         const dispute = new Dispute({

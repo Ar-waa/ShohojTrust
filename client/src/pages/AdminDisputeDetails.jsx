@@ -151,8 +151,9 @@ const AdminDisputeDetails = () => {
                             {dispute.evidenceFiles && dispute.evidenceFiles.length > 0 ? (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     {dispute.evidenceFiles.map((file, idx) => {
-                                        const fileUrl = `${apiBase}${file}`;
-                                        const isImage = file.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+                                        const isCloudinary = file.startsWith("http");
+                                        const fileUrl = isCloudinary ? file : `${apiBase}${file}`;
+                                        const isImage = file.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null || (isCloudinary && file.includes('/image/upload/'));
                                         
                                         return (
                                             <div key={idx} style={{ border: '1px solid #e2e8f0', padding: '10px', borderRadius: '8px' }}>

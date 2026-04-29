@@ -29,7 +29,7 @@ const Auth = () => {
 
       // ✅ FIXED ROUTES HERE
       if (userRole === "admin") {
-        navigate("/templates");
+        navigate("/admin-dashboard");
       } else if (userRole === "provider") {
         navigate("/provider-dashboard");
       } else {

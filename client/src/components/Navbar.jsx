@@ -6,24 +6,31 @@ const Navbar = () => {
 
     return (
         <nav className="navbar">
-        <div className="container nav-content">
-            <h2 className="logo">ShohojTrust</h2>
-            <div className="nav-buttons">
-            <button 
-                className="btn secondary"
-                onClick={() => navigate("/auth")}
-            >
-                Login
-            </button>
+            <div className="container nav-content">
+                <h2 className="logo">ShohojTrust</h2>
+                
+                <div className="nav-links">
+                    <span>Features</span>
+                    <span>Pricing</span>
+                    <span>Security</span>
+                </div>
 
-            <button 
-                className="btn primary"
-                onClick={() => navigate("/auth")}
-            >
-                Sign Up
-            </button>
+                <div className="nav-buttons">
+                    <button 
+                        className="btn secondary"
+                        onClick={() => navigate("/auth")}
+                    >
+                        Login
+                    </button>
+
+                    <button 
+                        className="btn primary"
+                        onClick={() => navigate("/auth")}
+                    >
+                        Sign Up
+                    </button>
+                </div>
             </div>
-        </div>
         </nav>
     );
 };

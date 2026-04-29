@@ -26,7 +26,7 @@ const Sidebar = () => {
     if (role === "provider") {
         dashboardPath = "/provider-dashboard";
     } else if (role === "admin") {
-        dashboardPath = "/admin";
+        dashboardPath = "/admin-dashboard";
     }
 
     const menuItems = [
@@ -38,7 +38,7 @@ const Sidebar = () => {
         ...(role === "client"
             ? [{ name: "Payment", path: "/payment", icon: <CreditCard size={18} /> }]
             : []),
-        ...(role !== "admin"
+        ...(role === "provider"
             ? [{ name: "Templates", path: "/templates", icon: <FileText size={18} /> }]
             : []),
         {
@@ -70,11 +70,7 @@ const Sidebar = () => {
                 }
             ]
             : []),
-        {
-            name: "Settings",
-            path: "/settings",
-            icon: <Settings size={18} />
-        },
+
         ...(role === "admin"
             ? [{ name: "Dispute Review", path: "/admin/disputes", icon: <AlertCircle size={18} /> }]
             : [{ name: "Dispute", path: "/dispute", icon: <AlertCircle size={18} /> }]
