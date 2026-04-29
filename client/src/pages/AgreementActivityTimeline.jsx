@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import "./AgreementActivityTimeline.css";
 import { Bell, Check, Clock3, FileText, Send } from "lucide-react";
+import API from "../api";
 
 const AgreementActivityTimeline = () => {
   const { agreementId } = useParams();
@@ -29,72 +30,61 @@ const AgreementActivityTimeline = () => {
     return <FileText size={18} />;
   };
 
-  useEffect(() => {
+  const loadTimeline = useCallback(async ({ showLoading = true } = {}) => {
     if (!agreementId) {
       setLoading(false);
       setTimeline([]);
       return;
     }
 
-    const load = async () => {
-      try {
-        setError("");
-        const apiBase = import.meta.env.VITE_API_URL;
-        const query = userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : "";
-        const res = await fetch(`${apiBase}/agreements/${agreementId}/events${query}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-          },
-        });
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.msg || errData.error || "Failed to load timeline data");
-        }
+    try {
+      if (showLoading) setLoading(true);
+      setError("");
 
-        const data = await res.json();
+      const { data } = await API.get(`/agreements/${agreementId}/events`, {
+        params: userEmail ? { userEmail } : {},
+      });
 
-        setAgreementMeta({
-          agreementId: data.agreementId,
-          title: data.title,
-          clientEmail: data.clientEmail,
-          providerEmail: data.providerEmail,
-          status: data.status,
-        });
+      setAgreementMeta({
+        agreementId: data.agreementId,
+        title: data.title,
+        clientEmail: data.clientEmail,
+        providerEmail: data.providerEmail,
+        status: data.status,
+      });
 
-        setTimeline(Array.isArray(data.timeline) ? data.timeline : []);
-      } catch (error) {
-        setError(error.message || "Something went wrong");
-        setTimeline([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
+      setTimeline(Array.isArray(data.timeline) ? data.timeline : []);
+    } catch (error) {
+      const message =
+        error.response?.data?.msg ||
+        error.response?.data?.error ||
+        error.message ||
+        "Something went wrong";
+      setError(message);
+      setTimeline([]);
+    } finally {
+      setLoading(false);
+    }
   }, [agreementId, userEmail]);
+
+  useEffect(() => {
+    loadTimeline();
+  }, [loadTimeline]);
 
   const handleMarkDone = async () => {
     if (!window.confirm("Are you sure you want to mark this agreement as done?")) return;
     
     setIsMarking(true);
     try {
-      const apiBase = import.meta.env.VITE_API_URL || "";
-      const res = await fetch(`${apiBase}/agreements/${agreementId}/complete`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-        },
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || errData.msg || "Failed to mark as done");
-      }
-
-      // Reload the page to get the updated status and timeline
-      window.location.reload();
+      await API.put(`/agreements/${agreementId}/complete`);
+      await loadTimeline({ showLoading: false });
     } catch (err) {
-      alert(err.message || "Failed to mark as done");
+      const message =
+        err.response?.data?.error ||
+        err.response?.data?.msg ||
+        err.message ||
+        "Failed to mark as done";
+      alert(message);
     } finally {
       setIsMarking(false);
     }
