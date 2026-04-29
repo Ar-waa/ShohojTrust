@@ -41,7 +41,7 @@ const AgreementActivityTimeline = () => {
         setError("");
         const apiBase = import.meta.env.VITE_API_URL;
         const query = userEmail ? `?userEmail=${encodeURIComponent(userEmail)}` : "";
-        const res = await fetch(`${apiBase}/api/agreements/${agreementId}/events${query}`, {
+        const res = await fetch(`${apiBase}/agreements/${agreementId}/events${query}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
           },
@@ -79,7 +79,7 @@ const AgreementActivityTimeline = () => {
     setIsMarking(true);
     try {
       const apiBase = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${apiBase}/api/agreements/${agreementId}/complete`, {
+      const res = await fetch(`${apiBase}/agreements/${agreementId}/complete`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token") || ""}`,

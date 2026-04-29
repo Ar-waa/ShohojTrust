@@ -48,8 +48,8 @@ const Payment = () => {
       const apiBase = import.meta.env.VITE_API_URL;
 
       const endpoint = userEmail
-        ? `${apiBase}/api/agreements/active?userEmail=${userEmail}`
-        : `${apiBase}/api/agreements/active`;
+        ? `${apiBase}/agreements/active?userEmail=${userEmail}`
+        : `${apiBase}/agreements/active`;
 
       const res = await fetch(endpoint, {
         headers: {
@@ -78,7 +78,7 @@ const Payment = () => {
 
     try {
       const apiBase = import.meta.env.VITE_API_URL;
-      const res = await fetch(`${apiBase}/api/payments/stripe/confirm`, {
+      const res = await fetch(`${apiBase}/payments/stripe/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,7 +114,7 @@ const Payment = () => {
 
   const startStripeCheckout = async (agreementId) => {
     const apiBase = import.meta.env.VITE_API_URL;
-    const res = await fetch(`${apiBase}/api/payments/stripe/create-checkout-session`, {
+    const res = await fetch(`${apiBase}/payments/stripe/create-checkout-session`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -155,7 +155,7 @@ const Payment = () => {
         return;
       }
 
-      const res = await fetch(`${apiBase}/api/payments/confirm`, {
+      const res = await fetch(`${apiBase}/payments/confirm`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

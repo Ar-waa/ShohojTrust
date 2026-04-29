@@ -33,8 +33,8 @@ const Dispute = () => {
         try {
             // Reusing the active agreements endpoint
             const endpoint = userEmail
-                ? `${apiBase}/api/agreements/active?userEmail=${encodeURIComponent(userEmail)}`
-                : `${apiBase}/api/agreements/active`;
+                ? `${apiBase}/agreements/active?userEmail=${encodeURIComponent(userEmail)}`
+                : `${apiBase}/agreements/active`;
 
             const res = await fetch(endpoint, {
                 headers: {
@@ -86,7 +86,7 @@ const Dispute = () => {
         }
 
         try {
-            const res = await fetch(`${apiBase}/api/disputes`, {
+            const res = await fetch(`${apiBase}/disputes`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`

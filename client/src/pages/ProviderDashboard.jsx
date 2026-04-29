@@ -104,7 +104,7 @@ const ProviderDashboard = () => {
     const handleDownloadPdf = async () => {
         try {
             const apiBase = import.meta.env.VITE_API_URL;
-            const res = await fetch(`${apiBase}/api/reports/my-report/pdf`, {
+            const res = await fetch(`${apiBase}/reports/my-report/pdf`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 }

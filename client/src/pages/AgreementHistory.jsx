@@ -20,8 +20,8 @@ const AgreementHistory = () => {
                 const user = JSON.parse(localStorage.getItem("user") || "null");
                 const userEmail = user?.email ? encodeURIComponent(user.email) : "";
                 const endpoint = userEmail
-                    ? `${apiBase}/api/agreements/history/completed?userEmail=${userEmail}`
-                    : `${apiBase}/api/agreements/history/completed`;
+                    ? `${apiBase}/agreements/history/completed?userEmail=${userEmail}`
+                    : `${apiBase}/agreements/history/completed`;
 
                 const res = await fetch(endpoint, {
                     headers: {

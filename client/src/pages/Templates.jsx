@@ -62,7 +62,7 @@ const Templates = () => {
                     <div className="template-actions">
                     <button className="btn secondary">Preview</button>
                     <button className="btn primary" onClick={() => 
-                        navigate("/dashboard", { state: {template: t}})}>
+                        navigate("/provider-dashboard", { state: {template: t}})}>
                         Use
                     </button>
 

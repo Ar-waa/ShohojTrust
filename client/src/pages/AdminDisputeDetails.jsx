@@ -20,7 +20,7 @@ const AdminDisputeDetails = () => {
     const fetchDisputeDetails = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${apiBase}/api/disputes/${id}`, {
+            const res = await fetch(`${apiBase}/disputes/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
                 }
@@ -44,7 +44,7 @@ const AdminDisputeDetails = () => {
         if (!window.confirm("Are you sure you want to resolve and remove this dispute?")) return;
 
         try {
-            const res = await fetch(`${apiBase}/api/disputes/${id}/resolve`, {
+            const res = await fetch(`${apiBase}/disputes/${id}/resolve`, {
                 method: "PATCH",
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
@@ -67,7 +67,7 @@ const AdminDisputeDetails = () => {
         if (!window.confirm("Are you sure you want to cancel the agreement and apply the penalty?")) return;
 
         try {
-            const res = await fetch(`${apiBase}/api/disputes/${id}/cancel-agreement`, {
+            const res = await fetch(`${apiBase}/disputes/${id}/cancel-agreement`, {
                 method: "PATCH",
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`
